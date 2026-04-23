@@ -1,4 +1,4 @@
-# CampusIQ 🎓 - Smart Campus Event Management System
+# CollegeBuddy 🎓 - Smart Campus Event Management System
 
 CampusIQ is a premium, full-stack platform designed to revolutionize campus event management. It provides a seamless experience for students to discover events, hosts to manage them with AI-driven insights, and volunteers to verify attendance using a robust QR-based ticketing system.
 

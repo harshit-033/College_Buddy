@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react"
-import API, { API_BASE } from "../api/api"
+import API from "../api/api"
 import { getUserId, getToken } from "../utils/auth"
+import { resolveApiUrl, resolveUploadUrl } from "../utils/url"
 import StudentSidebar from "../components/StudentSidebar"
 import { MapPin, IndianRupee, Users, Calendar, Ticket, Search, X, SlidersHorizontal } from "lucide-react"
 import { toast } from "react-hot-toast"
@@ -46,6 +47,20 @@ function Events() {
     fetchEvents("")
   }
 
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const bookTicket = async (eventId, eventTitle) => {
     const userId = getUserId()
     const token = getToken()
@@ -66,9 +81,67 @@ function Events() {
         }
       })
 
-      setTicketQR(res.data.qr_image)
-      setBookedEventTitle(eventTitle)
-      toast.success("Ticket Booked Successfully!")
+      if (res.data.requires_payment) {
+        const payData = res.data;
+        const scriptLoaded = await loadRazorpay();
+        if (!scriptLoaded) {
+          toast.error("Failed to load Razorpay SDK. Please check your internet connection.");
+          return;
+        }
+
+        const options = {
+          key: payData.key_id,
+          amount: payData.amount * 100, // in paisa
+          currency: "INR",
+          name: "CampusIQ",
+          description: `Ticket Registration for ${eventTitle}`,
+          order_id: payData.order_id,
+          handler: async (response) => {
+            setBookingId(eventId);
+            try {
+              const verifyRes = await API.post("/verify-payment", {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              }, {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              });
+
+              setTicketQR(verifyRes.data.qr_image);
+              setBookedEventTitle(eventTitle);
+              toast.success("Payment Verified & Ticket Booked Successfully!");
+              fetchEvents(searchQuery);
+            } catch (err) {
+              toast.error(err.response?.data?.detail || "Payment verification failed");
+            } finally {
+              setBookingId(null);
+            }
+          },
+          prefill: {
+            name: payData.user_name,
+            email: payData.user_email,
+            contact: payData.user_phone
+          },
+          theme: {
+            color: "#4F46E5"
+          },
+          modal: {
+            ondismiss: () => {
+              toast.error("Payment cancelled by user");
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        setTicketQR(res.data.qr_image)
+        setBookedEventTitle(eventTitle)
+        toast.success("Ticket Booked Successfully!")
+        fetchEvents(searchQuery);
+      }
 
     } catch (err) {
       toast.error(err.response?.data?.detail || "Error booking ticket")
@@ -172,7 +245,7 @@ function Events() {
                 >
                   {event.poster ? (
                     <img
-                      src={`${API_BASE}/uploads/${event.poster}`}
+                      src={resolveUploadUrl(event.poster)}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                       alt={event.title}
                     />
@@ -200,10 +273,19 @@ function Events() {
 
                     <p className="text-gray-700 text-sm mb-1 flex items-center gap-2">
                       <IndianRupee size={14} className="text-yellow-500" />
-                      {event.fee === 0 ? (
+                      {event.applicable_fee === 0 ? (
                         <span className="text-green-600 font-medium">Free</span>
                       ) : (
-                        <span>₹{event.fee}</span>
+                        <span>
+                          {event.volunteer_status === "approved" && event.volunteer_fee < event.fee ? (
+                            <span>
+                              <span className="line-through text-gray-400 mr-1.5">₹{event.fee}</span>
+                              <span className="text-emerald-600 font-semibold">₹{event.volunteer_fee} (Volunteer)</span>
+                            </span>
+                          ) : (
+                            <span>₹{event.fee}</span>
+                          )}
+                        </span>
                       )}
                     </p>
 
@@ -216,17 +298,25 @@ function Events() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => applyVolunteer(event.id, event.title)}
-                        disabled={applyingId === event.id || bookingId === event.id}
-                        className="bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-600 border border-emerald-200 px-3 py-2.5 rounded-lg w-1/2 font-medium transition-all duration-200"
+                        disabled={applyingId === event.id || bookingId === event.id || event.has_ticket || event.volunteer_status}
+                        className="bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 disabled:bg-gray-100 disabled:text-gray-400 text-emerald-600 border border-emerald-200 px-3 py-2.5 rounded-lg w-1/2 font-medium transition-all duration-200"
                       >
-                        {applyingId === event.id ? "Applying..." : "Volunteer"}
+                        {event.volunteer_status
+                          ? `Volunteer: ${event.volunteer_status}`
+                          : applyingId === event.id ? "Applying..." : "Volunteer"}
                       </button>
                       <button
                         onClick={() => bookTicket(event.id, event.title)}
-                        disabled={bookingId === event.id || applyingId === event.id}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white px-3 py-2.5 rounded-lg w-1/2 font-medium transition-all duration-200 hover:shadow-md"
+                        disabled={bookingId === event.id || applyingId === event.id || event.has_ticket}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white px-3 py-2.5 rounded-lg w-1/2 font-medium transition-all duration-200 hover:shadow-md"
                       >
-                        {bookingId === event.id ? "Booking..." : "Book Ticket"}
+                        {event.has_ticket
+                          ? "Booked"
+                          : bookingId === event.id
+                            ? "Processing..."
+                            : event.applicable_fee > 0
+                              ? "Pay & Register"
+                              : "Book Ticket"}
                       </button>
                     </div>
                   </div>
@@ -244,7 +334,7 @@ function Events() {
                 <h2 className="text-2xl font-bold mb-1">Your Ticket</h2>
                 <p className="text-gray-500 mb-5">{bookedEventTitle}</p>
                 <img
-                  src={`${API_BASE}${ticketQR}`}
+                  src={resolveApiUrl(ticketQR)}
                   className="mx-auto w-56 h-56 object-contain"
                   alt="QR Code"
                 />

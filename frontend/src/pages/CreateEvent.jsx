@@ -18,6 +18,7 @@ function CreateEvent() {
     date: "",
     endDate: "",
     fee: "",
+    volunteerFee: "",
     limit: "",
     maxVolunteers: ""
   })
@@ -32,6 +33,11 @@ function CreateEvent() {
       return
     }
 
+    if (!values.limit || Number(values.limit) <= 0) {
+      toast.error("Participant limit must be greater than 0")
+      return
+    }
+
     const token = getToken()
     const formData = new FormData()
 
@@ -39,7 +45,8 @@ function CreateEvent() {
     formData.append("description", values.description)
     formData.append("venue", values.venue)
     formData.append("fee", Number(values.fee) || 0)
-    formData.append("participant_limit", Number(values.limit) || 0)
+    formData.append("volunteer_fee", Number(values.volunteerFee) || 0)
+    formData.append("participant_limit", Number(values.limit))
     if (values.date) formData.append("event_date", values.date)
     if (values.endDate) formData.append("event_end_date", values.endDate)
     if (values.maxVolunteers) formData.append("max_volunteers", Number(values.maxVolunteers))

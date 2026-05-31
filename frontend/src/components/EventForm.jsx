@@ -68,6 +68,19 @@ function EventForm({ values, onChange, onPosterChange, onSubmit, submitLabel = "
           />
         </div>
         <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Volunteer Fee (₹)</label>
+          <input
+            type="number"
+            placeholder="0 for free"
+            value={values.volunteerFee || ""}
+            className="border border-gray-300 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => onChange("volunteerFee", e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-3 mb-4">
+        <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">Participant Limit</label>
           <input
             type="number"
@@ -77,17 +90,16 @@ function EventForm({ values, onChange, onPosterChange, onSubmit, submitLabel = "
             onChange={(e) => onChange("limit", e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Max Volunteers</label>
-        <input
-          type="number"
-          placeholder="Leave blank for unlimited"
-          value={values.maxVolunteers}
-          className="border border-gray-300 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={(e) => onChange("maxVolunteers", e.target.value)}
-        />
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Max Volunteers</label>
+          <input
+            type="number"
+            placeholder="Leave blank for unlimited"
+            value={values.maxVolunteers}
+            className="border border-gray-300 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => onChange("maxVolunteers", e.target.value)}
+          />
+        </div>
       </div>
 
       {onPosterChange && (

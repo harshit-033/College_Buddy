@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import API, { API_BASE } from "../api/api"
 import { getToken } from "../utils/auth"
+import { resolveApiUrl, resolveUploadUrl } from "../utils/url"
 import StudentSidebar from "../components/StudentSidebar"
 import { Ticket, Calendar, MapPin, CheckCircle, Clock, Download, QrCode } from "lucide-react"
 
@@ -65,7 +66,7 @@ function MyTickets() {
                     >
                       {ticket.event_poster ? (
                         <img
-                          src={`${API_BASE}/uploads/${ticket.event_poster}`}
+                          src={resolveUploadUrl(ticket.event_poster)}
                           className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
                           alt={ticket.event_title}
                         />
@@ -98,13 +99,24 @@ function MyTickets() {
 
                         {/* QR Code (expandable) */}
                         {selectedTicket?.id === ticket.id && (
-                          <div className="mt-4 pt-4 border-t border-gray-100 text-center animate-fade-in">
+                          <div className="mt-4 pt-4 border-t border-gray-100 text-center animate-fade-in flex flex-col items-center">
                             <p className="text-xs text-gray-400 mb-2">Show this QR at entry</p>
                             <img
-                              src={`${API_BASE}${ticket.qr_image}`}
-                              className="mx-auto w-40 h-40 object-contain rounded-lg border border-gray-200 p-2"
+                              src={resolveApiUrl(ticket.qr_image)}
+                              className="mx-auto w-40 h-40 object-contain rounded-lg border border-gray-200 p-2 mb-3"
                               alt="QR Code"
                             />
+                            {ticket.payment_id && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(`${API_BASE}/download-receipt/${ticket.payment_id}`, "_blank");
+                                }}
+                                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold shadow-sm"
+                              >
+                                <Download size={14} /> Download Receipt
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -144,7 +156,7 @@ function MyTickets() {
                         {selectedTicket?.id === ticket.id && (
                           <div className="mt-4 pt-4 border-t border-gray-100 text-center">
                             <img
-                              src={`${API_BASE}${ticket.qr_image}`}
+                              src={resolveApiUrl(ticket.qr_image)}
                               className="mx-auto w-32 h-32 object-contain rounded-lg border border-gray-200 p-2 grayscale"
                               alt="QR Code"
                             />

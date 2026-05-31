@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
-import API, { API_BASE } from "../api/api"
+import API from "../api/api"
 import { getToken } from "../utils/auth"
+import { resolveUploadUrl } from "../utils/url"
 import { useNavigate } from "react-router-dom"
 import Sidebar from "../components/Sidebar"
 import { Calendar, MapPin, IndianRupee, Users } from "lucide-react"
@@ -47,7 +48,7 @@ function HostEvents() {
 
                 {event.poster ? (
                   <img
-                    src={`${API_BASE}/uploads/${event.poster}`}
+                    src={resolveUploadUrl(event.poster)}
                     className="w-full h-40 object-cover"
                     alt={event.title}
                   />

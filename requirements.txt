@@ -11,3 +11,5 @@ scikit-learn
 pandas
 numpy
 pillow
+razorpay
+reportlab

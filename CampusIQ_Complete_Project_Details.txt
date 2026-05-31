@@ -1,0 +1,1115 @@
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║                     CAMPUSIQ — COMPLETE PROJECT DETAILS                        ║
+║                      Smart Campus Management System                            ║
+║                                                                                ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+Document Generated: 2026-05-30
+Version: 2.0 (Comprehensive Edition)
+
+════════════════════════════════════════════════════════════════════════════════════
+  TABLE OF CONTENTS
+════════════════════════════════════════════════════════════════════════════════════
+
+  1.  Project Overview
+  2.  Complete Tech Stack & Purpose of Each Technology
+  3.  System Architecture
+  4.  Backend — Deep Dive
+      4.1  Directory Structure
+      4.2  Django Apps & Configuration
+      4.3  Database Models (All Fields)
+      4.4  API Endpoints (Full Reference)
+      4.5  Authentication & Security
+      4.6  Middleware
+      4.7  Permissions
+      4.8  Services (Email, OTP)
+      4.9  Serializers
+      4.10 Exception Handling
+  5.  Frontend — Deep Dive
+      5.1  Directory Structure
+      5.2  Routing & Navigation
+      5.3  Components (All)
+      5.4  Pages (All)
+      5.5  Contexts & State Management
+      5.6  API Service Layer
+      5.7  Styling & Design System
+  6.  Deployment & DevOps
+  7.  Environment Variables
+  8.  Current Project Status
+  9.  Planned Features & Roadmap
+
+════════════════════════════════════════════════════════════════════════════════════
+  1. PROJECT OVERVIEW
+════════════════════════════════════════════════════════════════════════════════════
+
+Project Name    : CampusIQ — Smart Campus Management System
+Type            : Full-Stack Web Application
+Purpose         : A comprehensive campus management platform designed to
+                  streamline academic operations, event management, attendance
+                  tracking, and communication within educational institutions.
+
+Target Users    :
+  • Students     — View events, track attendance, receive notifications, manage profile
+  • Faculty      — Mark attendance, create events, manage academic activities
+  • HODs         — Department-level oversight, event & attendance management
+  • Admins       — Full system control, user approvals, dashboard analytics
+
+Key Capabilities:
+  • Firebase-based Authentication with Role-Based Access Control (RBAC)
+  • OTP Email Verification for user identity confirmation
+  • Event Management with registration, capacity, and deadline enforcement
+  • Attendance Tracking with subject-wise records and reporting
+  • Real-time Notification System (event, academic, general, approval types)
+  • Admin Dashboard with system-wide analytics and user approval workflow
+  • Professional HTML Email Notifications (OTP, welcome, approval)
+
+════════════════════════════════════════════════════════════════════════════════════
+  2. COMPLETE TECH STACK & PURPOSE OF EACH TECHNOLOGY
+════════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  BACKEND TECHNOLOGIES                                                          │
+├──────────────────────────┬────────────┬─────────────────────────────────────────┤
+│  Technology              │  Version   │  Purpose                                │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Python                  │  3.11.0    │  Core programming language for the      │
+│                          │            │  backend server and business logic       │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Django                  │  5.1.6     │  High-level Python web framework that   │
+│                          │            │  handles URL routing, ORM, admin panel,  │
+│                          │            │  middleware, and overall application     │
+│                          │            │  structure                               │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Django REST Framework   │  3.15.2    │  Toolkit for building RESTful APIs;     │
+│  (DRF)                   │            │  provides serializers, viewsets,         │
+│                          │            │  authentication classes, permission      │
+│                          │            │  classes, and API browsable interface    │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  PostgreSQL              │  (Render)  │  Relational database for persistent     │
+│                          │            │  data storage — user profiles, events,   │
+│                          │            │  attendance records, notifications, OTPs │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  psycopg2-binary         │  2.9.10    │  PostgreSQL database adapter for Python;│
+│                          │            │  enables Django to communicate with the  │
+│                          │            │  PostgreSQL database                     │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Firebase Admin SDK      │  6.7.0     │  Server-side Firebase integration;      │
+│                          │            │  verifies Firebase ID tokens for         │
+│                          │            │  authenticating API requests             │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  django-cors-headers     │  4.7.0     │  Handles Cross-Origin Resource Sharing  │
+│                          │            │  (CORS) headers so the React frontend   │
+│                          │            │  can make API calls to the Django backend│
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Gunicorn                │  23.0.0    │  Production-grade WSGI HTTP server;     │
+│                          │            │  serves the Django application in        │
+│                          │            │  production on Render                    │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  WhiteNoise              │  6.9.0     │  Serves static files (CSS, JS, images)  │
+│                          │            │  directly from the Django application    │
+│                          │            │  without needing a separate web server   │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  python-dotenv           │  1.0.1     │  Loads environment variables from .env  │
+│                          │            │  files into the application environment  │
+│                          │            │  for local development                   │
+└──────────────────────────┴────────────┴─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  FRONTEND TECHNOLOGIES                                                         │
+├──────────────────────────┬────────────┬─────────────────────────────────────────┤
+│  Technology              │  Version   │  Purpose                                │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  React                   │  19.0.0    │  Core UI library for building           │
+│                          │            │  interactive, component-based user       │
+│                          │            │  interfaces using a virtual DOM          │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  React DOM               │  19.0.0    │  React's rendering engine for the web;  │
+│                          │            │  bridges React components to the actual  │
+│                          │            │  browser DOM                             │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Vite                    │  6.3.5     │  Next-generation frontend build tool;   │
+│                          │            │  provides lightning-fast dev server with │
+│                          │            │  Hot Module Replacement (HMR) and        │
+│                          │            │  optimized production builds             │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  @vitejs/plugin-react    │  4.3.4     │  Vite plugin enabling React support     │
+│                          │            │  with Babel for JSX transformation and  │
+│                          │            │  Fast Refresh during development         │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  React Router DOM        │  7.5.3     │  Client-side routing library; enables   │
+│                          │            │  single-page app navigation with URL-   │
+│                          │            │  based page switching without full       │
+│                          │            │  page reloads                            │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Firebase (Client SDK)   │  11.6.0    │  Client-side Firebase Authentication;   │
+│                          │            │  handles user sign-up, login, token      │
+│                          │            │  generation, and auth state management   │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Axios                   │  1.8.4     │  Promise-based HTTP client; makes API   │
+│                          │            │  calls to the Django backend with        │
+│                          │            │  automatic request/response interceptors │
+│                          │            │  for attaching auth tokens               │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Framer Motion           │  12.7.4    │  Production-ready animation library     │
+│                          │            │  for React; powers page transitions,    │
+│                          │            │  hover effects, card animations, and    │
+│                          │            │  entrance/exit animations               │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Lucide React            │  0.487.0   │  Modern, consistent icon library;      │
+│                          │            │  provides SVG icons for navigation,     │
+│                          │            │  actions, and UI elements (Bell, User,  │
+│                          │            │  Menu, Calendar, Shield, etc.)          │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  React Hot Toast         │  2.5.2     │  Lightweight toast notification library;│
+│                          │            │  shows success/error/info messages to   │
+│                          │            │  users after actions (login, register,  │
+│                          │            │  event creation, etc.)                  │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  ESLint                  │  9.22.0    │  JavaScript/JSX linter for enforcing   │
+│                          │            │  code quality and catching errors       │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  eslint-plugin-react-    │  5.2.0     │  Enforces React Hooks rules (deps,     │
+│  hooks                   │            │  ordering) to prevent common bugs       │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  eslint-plugin-react-    │  0.4.19    │  Validates that components are          │
+│  refresh                 │            │  compatible with React Fast Refresh     │
+└──────────────────────────┴────────────┴─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  DEPLOYMENT & INFRASTRUCTURE                                                   │
+├──────────────────────────┬────────────┬─────────────────────────────────────────┤
+│  Technology              │  Version   │  Purpose                                │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Render                  │  —         │  Cloud platform hosting the Django      │
+│                          │            │  backend as a web service and the       │
+│                          │            │  PostgreSQL database                     │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Render PostgreSQL       │  —         │  Managed PostgreSQL database instance   │
+│                          │            │  for production data storage             │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Gmail SMTP              │  —         │  Email delivery service for sending     │
+│                          │            │  OTP codes, welcome emails, and         │
+│                          │            │  approval notifications                  │
+├──────────────────────────┼────────────┼─────────────────────────────────────────┤
+│  Vercel / Netlify        │  —         │  Planned frontend deployment platform   │
+│  (Planned)               │            │  for hosting the React SPA              │
+└──────────────────────────┴────────────┴─────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  UTILITIES & DOCUMENTATION                                                     │
+├──────────────────────────┬────────────┬─────────────────────────────────────────┤
+│  python-docx             │  1.1.2     │  Generates Word (.docx) documents for  │
+│                          │            │  project documentation exports          │
+└──────────────────────────┴────────────┴─────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════════
+  3. SYSTEM ARCHITECTURE
+════════════════════════════════════════════════════════════════════════════════════
+
+  ┌──────────────┐        ┌─────────────────────┐        ┌──────────────────┐
+  │   React SPA  │◄──────►│  Django REST API     │◄──────►│   PostgreSQL     │
+  │   (Vite)     │  HTTP  │  (DRF + Gunicorn)   │  ORM   │   (Render)       │
+  │              │  JSON  │                     │        │                  │
+  └──────┬───────┘        └──────────┬──────────┘        └──────────────────┘
+         │                           │
+         │ Firebase Auth             │ Firebase Admin SDK
+         │ (Client SDK)              │ (Token Verification)
+         ▼                           ▼
+  ┌──────────────────────────────────────────────┐
+  │              Firebase Authentication         │
+  │         (Google Cloud Infrastructure)        │
+  └──────────────────────────────────────────────┘
+                         │
+                  ┌──────┴──────┐
+                  │  Gmail SMTP │
+                  │  (Emails)   │
+                  └─────────────┘
+
+Authentication Flow:
+  1. User signs up/logs in via React → Firebase Client SDK
+  2. Firebase returns an ID Token to the React frontend
+  3. React sends API requests with "Authorization: Bearer <token>" header
+  4. Django middleware intercepts the request, verifies token via Firebase Admin SDK
+  5. If valid, request proceeds to the view; if invalid, 401 Unauthorized is returned
+  6. Backend identifies user by firebase_uid and enforces role-based permissions
+
+════════════════════════════════════════════════════════════════════════════════════
+  4. BACKEND — DEEP DIVE
+════════════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.1  DIRECTORY STRUCTURE
+──────────────────────────────────────────────────────────────────────────────────
+
+backend/
+├── backend/                    # Django Project Configuration
+│   ├── __init__.py
+│   ├── asgi.py                 # ASGI config (async support)
+│   ├── settings.py             # All project settings (DB, apps, middleware, etc.)
+│   ├── urls.py                 # Root URL routing — includes campus_api/urls.py
+│   └── wsgi.py                 # WSGI config (used by Gunicorn in production)
+├── campus_api/                 # Main Django Application
+│   ├── __init__.py
+│   ├── admin.py                # Django admin registrations
+│   ├── apps.py                 # App configuration
+│   ├── authentication.py       # Custom Firebase authentication class for DRF
+│   ├── email_service.py        # Email sending utilities (OTP, welcome, approval)
+│   ├── exceptions.py           # Custom exception handler for standardized errors
+│   ├── firebase_config.py      # Firebase Admin SDK initialization
+│   ├── middleware.py            # Firebase auth middleware for all requests
+│   ├── migrations/              # Database migration files (0001–0006)
+│   ├── models.py               # All database models
+│   ├── otp_service.py          # OTP generation, storage, and verification
+│   ├── permissions.py          # Custom DRF permission classes
+│   ├── serializers.py          # Data serialization/deserialization for API
+│   ├── tests.py                # Test file (placeholder)
+│   ├── urls.py                 # API URL routing
+│   └── views.py                # All API view logic
+├── db.sqlite3                  # Local SQLite database (development fallback)
+├── manage.py                   # Django management CLI
+└── requirements.txt            # Python dependencies
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.2  DJANGO APPS & CONFIGURATION
+──────────────────────────────────────────────────────────────────────────────────
+
+Installed Apps:
+  • django.contrib.admin         — Built-in admin interface
+  • django.contrib.auth          — Authentication framework
+  • django.contrib.contenttypes  — Content type framework
+  • django.contrib.sessions      — Session management
+  • django.contrib.messages      — Messaging framework
+  • django.contrib.staticfiles   — Static file management
+  • rest_framework               — Django REST Framework
+  • corsheaders                  — CORS headers support
+  • campus_api                   — Main application (custom)
+
+Middleware Stack (in order):
+  1. corsheaders.middleware.CorsMiddleware           — Handles CORS preflight
+  2. django.middleware.security.SecurityMiddleware    — Security protections
+  3. django.contrib.sessions.middleware.SessionMiddleware
+  4. django.middleware.common.CommonMiddleware
+  5. django.middleware.csrf.CsrfViewMiddleware
+  6. django.contrib.auth.middleware.AuthenticationMiddleware
+  7. campus_api.middleware.FirebaseAuthMiddleware     — Custom Firebase token check
+  8. django.contrib.messages.middleware.MessageMiddleware
+  9. django.middleware.clickjacking.XFrameOptionsMiddleware
+
+REST Framework Configuration:
+  • Default Authentication: FirebaseAuthentication (custom)
+  • Default Permissions: IsAuthenticated
+
+CORS Configuration:
+  • CORS_ALLOW_ALL_ORIGINS = True
+  • CORS_ALLOW_CREDENTIALS = True
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.3  DATABASE MODELS (ALL FIELDS)
+──────────────────────────────────────────────────────────────────────────────────
+
+MODEL 1: UserProfile
+─────────────────────
+Purpose: Stores user account information linked to Firebase authentication
+
+  ┌───────────────────────┬───────────────────┬──────────────────────────────────┐
+  │  Field                │  Type             │  Details                         │
+  ├───────────────────────┼───────────────────┼──────────────────────────────────┤
+  │  firebase_uid         │  CharField(128)   │  Unique, indexed; links to       │
+  │                       │                   │  Firebase account                │
+  │  email                │  EmailField       │  Unique                          │
+  │  full_name            │  CharField(255)   │  User's display name             │
+  │  phone                │  CharField(15)    │  Optional (blank/null)           │
+  │  role                 │  CharField(20)    │  Choices: student, faculty,      │
+  │                       │                   │  admin, hod; default: student    │
+  │  department           │  CharField(100)   │  Optional (blank/null)           │
+  │  enrollment_number    │  CharField(20)    │  Optional, unique                │
+  │  is_verified          │  BooleanField     │  Default: False; set True after  │
+  │                       │                   │  OTP verification                │
+  │  is_approved          │  BooleanField     │  Default: False; set True by     │
+  │                       │                   │  admin approval                  │
+  │  created_at           │  DateTimeField    │  Auto-set on creation            │
+  │  updated_at           │  DateTimeField    │  Auto-updated on save            │
+  │  profile_picture      │  URLField         │  Optional; URL to profile image  │
+  │  semester             │  IntegerField     │  Optional (blank/null)           │
+  │  section              │  CharField(10)    │  Optional (blank/null)           │
+  └───────────────────────┴───────────────────┴──────────────────────────────────┘
+
+MODEL 2: OTP
+─────────────
+Purpose: Stores one-time passwords for email verification
+
+  ┌───────────────────────┬───────────────────┬──────────────────────────────────┐
+  │  Field                │  Type             │  Details                         │
+  ├───────────────────────┼───────────────────┼──────────────────────────────────┤
+  │  email                │  EmailField       │  Target email address            │
+  │  otp_code             │  CharField(6)     │  6-digit OTP code                │
+  │  created_at           │  DateTimeField    │  Auto-set on creation            │
+  │  is_used              │  BooleanField     │  Default: False                  │
+  │  expires_at           │  DateTimeField    │  Expiry timestamp (10 min)       │
+  └───────────────────────┴───────────────────┴──────────────────────────────────┘
+  Method: is_valid() — returns True if not used AND not expired
+
+MODEL 3: Event
+───────────────
+Purpose: Stores campus event information
+
+  ┌───────────────────────┬───────────────────┬──────────────────────────────────┐
+  │  Field                │  Type             │  Details                         │
+  ├───────────────────────┼───────────────────┼──────────────────────────────────┤
+  │  title                │  CharField(200)   │  Event name                      │
+  │  description          │  TextField        │  Full event description          │
+  │  event_type           │  CharField(50)    │  Choices: academic, cultural,    │
+  │                       │                   │  sports, technical, workshop,    │
+  │                       │                   │  seminar, other                  │
+  │  start_date           │  DateTimeField    │  Event start date/time           │
+  │  end_date             │  DateTimeField    │  Event end date/time             │
+  │  location             │  CharField(200)   │  Venue/location                  │
+  │  organizer            │  ForeignKey       │  → UserProfile (who created it)  │
+  │  department           │  CharField(100)   │  Optional; organizing department │
+  │  max_participants     │  IntegerField     │  Optional; capacity limit        │
+  │  registration_deadline│  DateTimeField    │  Optional; last date to register │
+  │  is_active            │  BooleanField     │  Default: True                   │
+  │  created_at           │  DateTimeField    │  Auto-set on creation            │
+  │  image_url            │  URLField         │  Optional; event banner image    │
+  └───────────────────────┴───────────────────┴──────────────────────────────────┘
+
+MODEL 4: EventRegistration
+──────────────────────────
+Purpose: Tracks which users have registered for which events
+
+  ┌───────────────────────┬───────────────────┬──────────────────────────────────┐
+  │  Field                │  Type             │  Details                         │
+  ├───────────────────────┼───────────────────┼──────────────────────────────────┤
+  │  event                │  ForeignKey       │  → Event                         │
+  │  user                 │  ForeignKey       │  → UserProfile                   │
+  │  registered_at        │  DateTimeField    │  Auto-set on creation            │
+  │  status               │  CharField(20)    │  Choices: registered, attended,  │
+  │                       │                   │  cancelled; default: registered  │
+  └───────────────────────┴───────────────────┴──────────────────────────────────┘
+  Constraint: unique_together = ('event', 'user')
+
+MODEL 5: Notification
+─────────────────────
+Purpose: Stores in-app notifications for users
+
+  ┌───────────────────────┬───────────────────┬──────────────────────────────────┐
+  │  Field                │  Type             │  Details                         │
+  ├───────────────────────┼───────────────────┼──────────────────────────────────┤
+  │  recipient            │  ForeignKey       │  → UserProfile                   │
+  │  title                │  CharField(200)   │  Notification heading            │
+  │  message              │  TextField        │  Notification body               │
+  │  notification_type    │  CharField(50)    │  Choices: event, academic,       │
+  │                       │                   │  general, approval               │
+  │  is_read              │  BooleanField     │  Default: False                  │
+  │  created_at           │  DateTimeField    │  Auto-set on creation            │
+  │  related_event        │  ForeignKey       │  → Event (optional)              │
+  └───────────────────────┴───────────────────┴──────────────────────────────────┘
+
+MODEL 6: Attendance
+───────────────────
+Purpose: Tracks student attendance records per subject per day
+
+  ┌───────────────────────┬───────────────────┬──────────────────────────────────┐
+  │  Field                │  Type             │  Details                         │
+  ├───────────────────────┼───────────────────┼──────────────────────────────────┤
+  │  student              │  ForeignKey       │  → UserProfile (related_name=    │
+  │                       │                   │  'attendances')                  │
+  │  date                 │  DateField        │  Attendance date                 │
+  │  subject              │  CharField(100)   │  Subject name                    │
+  │  status               │  CharField(10)    │  Choices: present, absent, late; │
+  │                       │                   │  default: present                │
+  │  marked_by            │  ForeignKey       │  → UserProfile (the faculty who  │
+  │                       │                   │  marked it); optional            │
+  │  created_at           │  DateTimeField    │  Auto-set on creation            │
+  └───────────────────────┴───────────────────┴──────────────────────────────────┘
+  Constraint: unique_together = ('student', 'date', 'subject')
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.4  API ENDPOINTS (FULL REFERENCE)
+──────────────────────────────────────────────────────────────────────────────────
+
+All endpoints are prefixed with /api/
+
+AUTHENTICATION & USER MANAGEMENT
+  ┌────────┬──────────────────────────────┬─────────────────────────────────────┐
+  │ Method │ Endpoint                     │ Description                         │
+  ├────────┼──────────────────────────────┼─────────────────────────────────────┤
+  │ POST   │ /api/auth/register/          │ Register a new user (creates        │
+  │        │                              │ UserProfile, sends welcome email)   │
+  │ POST   │ /api/auth/login/             │ Login (verifies Firebase token,     │
+  │        │                              │ returns user profile data)          │
+  │ GET    │ /api/auth/profile/           │ Get authenticated user's profile    │
+  │ PUT    │ /api/auth/profile/           │ Update authenticated user's profile │
+  │ POST   │ /api/auth/send-otp/          │ Send OTP to specified email address │
+  │ POST   │ /api/auth/verify-otp/        │ Verify OTP code; marks user as     │
+  │        │                              │ verified on success                 │
+  └────────┴──────────────────────────────┴─────────────────────────────────────┘
+  Access: register, login, send-otp, verify-otp are AllowAny; profile requires auth
+
+EVENT MANAGEMENT
+  ┌────────┬──────────────────────────────┬─────────────────────────────────────┐
+  │ Method │ Endpoint                     │ Description                         │
+  ├────────┼──────────────────────────────┼─────────────────────────────────────┤
+  │ GET    │ /api/events/                 │ List all active events (filterable  │
+  │        │                              │ by type, department, search term)   │
+  │ POST   │ /api/events/                 │ Create a new event (faculty/admin/  │
+  │        │                              │ hod only)                           │
+  │ GET    │ /api/events/<id>/            │ Get event details                   │
+  │ PUT    │ /api/events/<id>/            │ Update event (organizer/admin only) │
+  │ DELETE │ /api/events/<id>/            │ Delete event (organizer/admin only) │
+  │ POST   │ /api/events/<id>/register/   │ Register for an event (checks      │
+  │        │                              │ deadline & capacity)                │
+  │ GET    │ /api/events/my-registrations/│ List user's event registrations     │
+  └────────┴──────────────────────────────┴─────────────────────────────────────┘
+
+ATTENDANCE
+  ┌────────┬──────────────────────────────┬─────────────────────────────────────┐
+  │ Method │ Endpoint                     │ Description                         │
+  ├────────┼──────────────────────────────┼─────────────────────────────────────┤
+  │ POST   │ /api/attendance/mark/        │ Mark student attendance (faculty/   │
+  │        │                              │ admin/hod only)                     │
+  │ GET    │ /api/attendance/my-attendance/│ Get student's own attendance        │
+  │        │                              │ (filterable by subject, month)      │
+  │ GET    │ /api/attendance/report/      │ Get attendance report (faculty/     │
+  │        │                              │ admin/hod; filter by subject,       │
+  │        │                              │ department, date range)             │
+  └────────┴──────────────────────────────┴─────────────────────────────────────┘
+
+NOTIFICATIONS
+  ┌────────┬──────────────────────────────┬─────────────────────────────────────┐
+  │ Method │ Endpoint                     │ Description                         │
+  ├────────┼──────────────────────────────┼─────────────────────────────────────┤
+  │ GET    │ /api/notifications/          │ List user's notifications           │
+  │        │                              │ (optional ?unread=true filter)      │
+  │ PUT    │ /api/notifications/<id>/read/│ Mark a notification as read         │
+  └────────┴──────────────────────────────┴─────────────────────────────────────┘
+
+ADMIN
+  ┌────────┬──────────────────────────────┬─────────────────────────────────────┐
+  │ Method │ Endpoint                     │ Description                         │
+  ├────────┼──────────────────────────────┼─────────────────────────────────────┤
+  │ GET    │ /api/admin/pending-approvals/│ List unapproved users (admin only)  │
+  │ POST   │ /api/admin/approve-user/<id>/│ Approve a user account; sends       │
+  │        │                              │ approval email (admin only)         │
+  │ GET    │ /api/admin/dashboard-stats/  │ Get dashboard stats: total users,   │
+  │        │                              │ events, pending approvals, recent   │
+  │        │                              │ events (admin only)                 │
+  └────────┴──────────────────────────────┴─────────────────────────────────────┘
+
+HEALTH CHECK
+  ┌────────┬──────────────────────────────┬─────────────────────────────────────┐
+  │ Method │ Endpoint                     │ Description                         │
+  ├────────┼──────────────────────────────┼─────────────────────────────────────┤
+  │ GET    │ /api/health/                 │ Returns {"status": "healthy"}       │
+  └────────┴──────────────────────────────┴─────────────────────────────────────┘
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.5  AUTHENTICATION & SECURITY
+──────────────────────────────────────────────────────────────────────────────────
+
+Authentication Class: FirebaseAuthentication (campus_api/authentication.py)
+  • Extends DRF's BaseAuthentication
+  • Extracts Bearer token from HTTP "Authorization" header
+  • Calls firebase_admin.auth.verify_id_token() to validate the token
+  • Looks up the UserProfile by the decoded firebase_uid
+  • Returns (user_profile, decoded_token) tuple on success
+  • Raises AuthenticationFailed on invalid/missing token
+
+Firebase Configuration (campus_api/firebase_config.py):
+  • Reads FIREBASE_CREDENTIALS env var (JSON string) → parsed with json.loads
+  • Falls back to GOOGLE_APPLICATION_CREDENTIALS env var (file path)
+  • Calls firebase_admin.initialize_app() with the credentials on module import
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.6  MIDDLEWARE
+──────────────────────────────────────────────────────────────────────────────────
+
+FirebaseAuthMiddleware (campus_api/middleware.py):
+  • Runs on every incoming request before it reaches the view
+  • SKIPS authentication for these paths:
+      - /admin/              (Django admin)
+      - /api/health/         (Health check)
+      - /api/auth/register/  (Registration)
+      - /api/auth/login/     (Login)
+  • For all other paths:
+      - Extracts Bearer token from Authorization header
+      - Verifies via Firebase Admin SDK
+      - Attaches decoded firebase_user to request object
+      - Returns 401 JSON error if token is missing or invalid
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.7  PERMISSIONS
+──────────────────────────────────────────────────────────────────────────────────
+
+Custom Permission Classes (campus_api/permissions.py):
+
+  • IsAdminUser     — Grants access only if request.user.role == 'admin'
+  • IsFacultyUser   — Grants access if request.user.role in ['faculty', 'admin', 'hod']
+  • IsApprovedUser  — Grants access only if request.user.is_approved == True
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.8  SERVICES (EMAIL & OTP)
+──────────────────────────────────────────────────────────────────────────────────
+
+OTP Service (campus_api/otp_service.py):
+  • generate_otp(email):
+      1. Generates a random 6-digit numeric code
+      2. Saves OTP record to database with 10-minute expiry
+      3. Sends OTP via email using EmailService
+      4. Returns True on success, False on failure
+  • verify_otp(email, otp_code):
+      1. Queries database for matching OTP (unused, not expired)
+      2. Marks OTP as used if found
+      3. Returns True/False
+
+Email Service (campus_api/email_service.py):
+  • send_otp_email(email, otp_code):
+      — Sends professionally styled HTML email with OTP code
+  • send_welcome_email(email, full_name):
+      — Sends welcome email after successful registration
+  • send_approval_email(email, full_name):
+      — Sends notification when admin approves the user's account
+  • Uses Django's send_mail() with html_message for rich HTML emails
+  • Email sent via Gmail SMTP (smtp.gmail.com:587, TLS)
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.9  SERIALIZERS
+──────────────────────────────────────────────────────────────────────────────────
+
+  • UserRegistrationSerializer — Used for POST /auth/register/
+      Fields: firebase_uid, email, full_name, phone, role, department,
+              enrollment_number, semester, section
+
+  • UserProfileSerializer — Used for GET/PUT /auth/profile/
+      All UserProfile fields (read-only computed fields included)
+
+  • EventSerializer — Full Event serialization
+      Extra read-only fields: organizer_name, registered_count, is_registered
+
+  • EventRegistrationSerializer — EventRegistration with nested event data
+
+  • NotificationSerializer — Notification with related_event_title
+
+  • AttendanceSerializer — Attendance with student_name, marked_by_name
+
+  • AttendanceMarkSerializer — Input serializer for marking attendance
+      Fields: student_id, date, subject, status (validates student exists)
+
+──────────────────────────────────────────────────────────────────────────────────
+  4.10  EXCEPTION HANDLING
+──────────────────────────────────────────────────────────────────────────────────
+
+Custom Exception Handler (campus_api/exceptions.py):
+  • Extends DRF's default exception handler
+  • Wraps all API errors into a standardized JSON format:
+      {
+          "error": true,
+          "message": "...",
+          "details": { ... }
+      }
+  • Handles: ValidationError, AuthenticationFailed, NotFound,
+    PermissionDenied, and generic server errors
+
+════════════════════════════════════════════════════════════════════════════════════
+  5. FRONTEND — DEEP DIVE
+════════════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────────────────────────────────
+  5.1  DIRECTORY STRUCTURE
+──────────────────────────────────────────────────────────────────────────────────
+
+frontend/
+├── .env                        # Environment variables (Firebase config, API URL)
+├── .gitignore                  # Git ignore rules
+├── eslint.config.js            # ESLint configuration
+├── index.html                  # HTML entry point
+├── package.json                # Dependencies & scripts
+├── package-lock.json           # Locked dependency tree
+├── public/
+│   └── vite.svg                # Vite favicon
+├── src/
+│   ├── App.css                 # App-level styles
+│   ├── App.jsx                 # Root component (routing setup)
+│   ├── assets/
+│   │   └── react.svg           # React logo asset
+│   ├── components/
+│   │   ├── EventCard.jsx       # Event summary card component
+│   │   ├── EventCard.css
+│   │   ├── Layout.jsx          # Authenticated page wrapper (Navbar + Sidebar)
+│   │   ├── Layout.css
+│   │   ├── LoadingSpinner.jsx  # Full-screen loading indicator
+│   │   ├── LoadingSpinner.css
+│   │   ├── Navbar.jsx          # Top navigation bar
+│   │   ├── Navbar.css
+│   │   ├── ProtectedRoute.jsx  # Auth guard for protected routes
+│   │   └── Sidebar.jsx         # Side navigation menu
+│   ├── config/
+│   │   └── firebase.js         # Firebase client SDK initialization
+│   ├── contexts/
+│   │   └── AuthContext.jsx     # Authentication state provider
+│   ├── index.css               # Global styles & CSS variables
+│   ├── main.jsx                # Application entry point (renders App)
+│   ├── pages/
+│   │   ├── Attendance.jsx      # Attendance management page
+│   │   ├── Attendance.css
+│   │   ├── CreateEvent.jsx     # Event creation form page
+│   │   ├── CreateEvent.css
+│   │   ├── Dashboard.jsx       # Main dashboard (role-based)
+│   │   ├── Dashboard.css
+│   │   ├── EventDetail.jsx     # Individual event details page
+│   │   ├── EventDetail.css
+│   │   ├── Events.jsx          # Events listing page
+│   │   ├── Events.css
+│   │   ├── Login.jsx           # Login page
+│   │   ├── Login.css
+│   │   ├── Notifications.jsx   # Notifications listing page
+│   │   ├── Notifications.css
+│   │   ├── Profile.jsx         # User profile view/edit page
+│   │   ├── Profile.css
+│   │   ├── Register.jsx        # Registration page
+│   │   ├── Register.css
+│   │   └── VerifyOTP.jsx       # OTP verification page
+│   └── services/
+│       └── api.js              # Centralized API client (Axios)
+└── vite.config.js              # Vite build configuration
+
+──────────────────────────────────────────────────────────────────────────────────
+  5.2  ROUTING & NAVIGATION
+──────────────────────────────────────────────────────────────────────────────────
+
+  PUBLIC ROUTES (no authentication required):
+  ┌───────────────────┬────────────────┬────────────────────────────────────────┐
+  │  Path             │  Component     │  Description                           │
+  ├───────────────────┼────────────────┼────────────────────────────────────────┤
+  │  /login           │  Login         │  Email/password login form             │
+  │  /register        │  Register      │  Multi-field registration form         │
+  │  /verify-otp      │  VerifyOTP     │  OTP verification page                 │
+  └───────────────────┴────────────────┴────────────────────────────────────────┘
+
+  PROTECTED ROUTES (authentication required, wrapped in Layout):
+  ┌───────────────────┬────────────────┬────────────────────────────────────────┐
+  │  Path             │  Component     │  Description                           │
+  ├───────────────────┼────────────────┼────────────────────────────────────────┤
+  │  /                │  Dashboard     │  Main dashboard (default route)        │
+  │  /dashboard       │  Dashboard     │  Main dashboard (explicit)             │
+  │  /events          │  Events        │  Browse & filter all events            │
+  │  /events/create   │  CreateEvent   │  Create new event form                 │
+  │  /events/:id      │  EventDetail   │  View single event details             │
+  │  /attendance      │  Attendance    │  View/mark attendance                  │
+  │  /notifications   │  Notifications │  View all notifications                │
+  │  /profile         │  Profile       │  View/edit user profile                │
+  └───────────────────┴────────────────┴────────────────────────────────────────┘
+
+──────────────────────────────────────────────────────────────────────────────────
+  5.3  COMPONENTS (ALL)
+──────────────────────────────────────────────────────────────────────────────────
+
+1. Layout (Layout.jsx)
+   • Wraps all authenticated pages
+   • Renders: Navbar (top) + Sidebar (left) + Main Content Area (center)
+   • Uses React Router's <Outlet /> for nested route rendering
+   • Manages sidebar toggle state for mobile responsiveness
+
+2. Navbar (Navbar.jsx)
+   • Top navigation bar across all authenticated pages
+   • Shows: User greeting with role badge
+   • Notification bell icon with unread count badge
+   • Profile dropdown (avatar, name, email, logout link)
+   • Mobile hamburger menu toggle for sidebar
+   • Icons: Bell, User, Menu, X, LogOut, ChevronDown (from lucide-react)
+
+3. Sidebar (Sidebar.jsx)
+   • Left-side navigation panel
+   • Links (all roles): Dashboard, Events, Attendance, Notifications, Profile
+   • Admin-only: Admin Dashboard link (visible when role === 'admin')
+   • Faculty-specific: Mark Attendance shortcut
+   • Active route highlighting via useLocation()
+   • Overlay backdrop for mobile view
+   • Icons: LayoutDashboard, Calendar, Clock, Bell, User, Shield, CheckSquare
+
+4. EventCard (EventCard.jsx)
+   • Reusable card displaying event summary
+   • Shows: type badge, title, description (truncated), date/time, location,
+     organizer name, registration count
+   • Hover animation (scale + shadow) via framer-motion
+   • "View Details" link navigating to /events/:id
+
+5. LoadingSpinner (LoadingSpinner.jsx)
+   • Full-screen centered loading indicator
+   • CSS keyframe spinning animation
+   • Used during auth state resolution
+
+6. ProtectedRoute (ProtectedRoute.jsx)
+   • Route guard component
+   • Shows LoadingSpinner while auth state is loading
+   • Redirects to /login if user is not authenticated
+   • Renders <Outlet /> for child routes if authenticated
+
+──────────────────────────────────────────────────────────────────────────────────
+  5.4  PAGES (ALL)
+──────────────────────────────────────────────────────────────────────────────────
+
+1. Login Page (Login.jsx)
+   • Email/password input form
+   • Authenticates via Firebase (useAuth().login())
+   • Fetches backend user profile after Firebase auth success
+   • Toast notifications for success/error feedback
+   • Animated entrance (fade-in, slide-up) with framer-motion
+   • Campus branding section
+   • Link to registration page
+
+2. Register Page (Register.jsx)
+   • Multi-field registration form
+   • Fields: Full Name, Email, Password, Confirm Password, Phone,
+     Role (dropdown: Student/Faculty/Admin/HOD), Department,
+     Enrollment Number (shown only for students), Semester, Section
+   • Creates Firebase user account → registers with backend API
+   • Navigates to /verify-otp on success
+   • Role-conditional field visibility
+   • Animated with framer-motion
+
+3. VerifyOTP Page (VerifyOTP.jsx)
+   • 6-digit OTP input form
+   • Sends OTP to user's email, then verifies the code
+   • Redirects to /dashboard on successful verification
+   • Resend OTP functionality
+
+4. Dashboard Page (Dashboard.jsx)
+   • Role-based content rendering:
+     — ADMIN VIEW: Stats cards (Total Users, Total Events, Pending
+       Approvals), Pending user approval list with approve buttons,
+       Recent events list
+     — STUDENT/FACULTY VIEW: Welcome message, upcoming events,
+       attendance summary
+   • Fetches data from multiple API endpoints on mount
+   • Animated stat cards with framer-motion
+   • Lucide icons for visual stats
+
+5. Events Page (Events.jsx)
+   • Lists all active events as EventCard grid
+   • Search bar for title-based filtering
+   • Event type filter dropdown
+   • Department filter dropdown
+   • "Create Event" button (visible to faculty/admin/hod only)
+   • Loading spinner during data fetch
+   • Empty state message when no events found
+
+6. CreateEvent Page (CreateEvent.jsx)
+   • Event creation form (restricted to faculty/admin/hod)
+   • Fields: Title, Description (textarea), Event Type (dropdown),
+     Start Date, End Date, Location, Department, Max Participants,
+     Registration Deadline, Image URL
+   • Form validation before submission
+   • Success toast + redirect to /events on creation
+
+7. EventDetail Page (EventDetail.jsx)
+   • Full event information display
+   • Shows: type badge, title, full description, start/end dates,
+     location, organizer info, registration count vs capacity
+   • Register / Unregister button
+   • Edit / Delete options (visible to organizer or admin)
+   • Loading state while fetching
+
+8. Attendance Page (Attendance.jsx)
+   • FACULTY VIEW: Mark attendance form — select student, date, subject, status
+   • STUDENT VIEW: Personal attendance records table
+   • Filters: subject, month
+   • Attendance percentage calculation display
+   • Color-coded status indicators (green=present, red=absent, yellow=late)
+
+9. Notifications Page (Notifications.jsx)
+   • Lists all user notifications
+   • Filter toggle: All / Unread only
+   • "Mark as read" action per notification
+   • Type badges (event, academic, general, approval)
+   • Relative timestamps
+   • Empty state for no notifications
+
+10. Profile Page (Profile.jsx)
+    • View mode: Displays avatar, name, email, phone, role, department,
+      enrollment number, semester, section, verification status, approval status
+    • Edit mode: Toggle to edit form for updatable fields
+    • Profile picture URL input
+    • Save/cancel actions with toast feedback
+
+──────────────────────────────────────────────────────────────────────────────────
+  5.5  CONTEXTS & STATE MANAGEMENT
+──────────────────────────────────────────────────────────────────────────────────
+
+AuthContext (contexts/AuthContext.jsx):
+  • React Context + Provider pattern
+  • State managed:
+      - currentUser (Firebase user object)
+      - userProfile (backend UserProfile data)
+      - loading (boolean, auth state resolving)
+  • Listens to Firebase onAuthStateChanged
+  • On auth state change → fetches user profile from /api/auth/profile/
+  • Exposed functions:
+      - signup(email, password)  — createUserWithEmailAndPassword
+      - login(email, password)   — signInWithEmailAndPassword
+      - logout()                 — signOut
+      - getToken()               — currentUser.getIdToken()
+  • Sets Axios default Authorization header with Firebase Bearer token
+  • All components access via useAuth() custom hook
+
+No additional state management library is used (no Redux, Zustand, etc.)
+— all state is managed via React Context + component-level useState/useEffect.
+
+──────────────────────────────────────────────────────────────────────────────────
+  5.6  API SERVICE LAYER
+──────────────────────────────────────────────────────────────────────────────────
+
+File: services/api.js
+
+  • Creates Axios instance with baseURL from VITE_API_BASE_URL
+    (fallback: http://localhost:8000)
+  • Request Interceptor:
+      — Automatically attaches "Authorization: Bearer <token>" from
+        Firebase currentUser.getIdToken() to every outgoing request
+  • Exports named functions for every API call:
+
+  ┌───────────────────────────┬────────┬──────────────────────────────────────┐
+  │  Function                 │ Method │ Endpoint                             │
+  ├───────────────────────────┼────────┼──────────────────────────────────────┤
+  │  registerUser(data)       │ POST   │ /api/auth/register/                  │
+  │  loginUser()              │ POST   │ /api/auth/login/                     │
+  │  getUserProfile()         │ GET    │ /api/auth/profile/                   │
+  │  updateUserProfile(data)  │ PUT    │ /api/auth/profile/                   │
+  │  sendOTP(email)           │ POST   │ /api/auth/send-otp/                  │
+  │  verifyOTP(email, otp)    │ POST   │ /api/auth/verify-otp/                │
+  │  getEvents(params)        │ GET    │ /api/events/                         │
+  │  getEventDetail(id)       │ GET    │ /api/events/${id}/                   │
+  │  createEvent(data)        │ POST   │ /api/events/                         │
+  │  registerForEvent(id)     │ POST   │ /api/events/${id}/register/          │
+  │  getMyRegistrations()     │ GET    │ /api/events/my-registrations/        │
+  │  getNotifications()       │ GET    │ /api/notifications/                  │
+  │  markNotificationRead(id) │ PUT    │ /api/notifications/${id}/read/       │
+  │  markAttendance(data)     │ POST   │ /api/attendance/mark/                │
+  │  getMyAttendance(params)  │ GET    │ /api/attendance/my-attendance/       │
+  │  getAttendanceReport(p)   │ GET    │ /api/attendance/report/              │
+  │  getPendingApprovals()    │ GET    │ /api/admin/pending-approvals/        │
+  │  approveUser(id)          │ POST   │ /api/admin/approve-user/${id}/       │
+  │  getDashboardStats()      │ GET    │ /api/admin/dashboard-stats/          │
+  └───────────────────────────┴────────┴──────────────────────────────────────┘
+
+──────────────────────────────────────────────────────────────────────────────────
+  5.7  STYLING & DESIGN SYSTEM
+──────────────────────────────────────────────────────────────────────────────────
+
+Approach: Vanilla CSS with component-scoped CSS files
+Font: Google Fonts — Inter (@import url)
+Theme: Dark theme by default
+
+CSS Variables (defined in index.css):
+  --primary           : #6366f1    (Indigo — brand primary color)
+  --primary-dark      : #4f46e5    (Darker indigo for hover states)
+  --primary-light     : #818cf8    (Lighter indigo for accents)
+  --secondary         : #ec4899    (Pink — secondary accent)
+  --background        : #0f172a    (Dark blue-gray — page background)
+  --surface           : #1e293b    (Card/panel background)
+  --surface-light     : #334155    (Elevated surface)
+  --text-primary      : #f1f5f9    (Primary text color — near white)
+  --text-secondary    : #94a3b8    (Muted text color)
+  --success           : (green shade for success states)
+  --warning           : (amber shade for warning states)
+  --error             : (red shade for error states)
+  --info              : (blue shade for info states)
+
+Design Techniques Used:
+  • Glassmorphism effects on cards (backdrop-filter, semi-transparent BGs)
+  • Gradient accents on buttons and headers
+  • CSS keyframe animations (loading spinner, fade-in effects)
+  • Responsive design via media queries (mobile/tablet/desktop)
+  • Custom scrollbar styling (webkit)
+  • Framer Motion animations for page transitions & hover effects
+  • Component-scoped CSS (each .jsx has a paired .css file)
+
+════════════════════════════════════════════════════════════════════════════════════
+  6. DEPLOYMENT & DEVOPS
+════════════════════════════════════════════════════════════════════════════════════
+
+BACKEND DEPLOYMENT (Render):
+  • Platform: Render (Web Service)
+  • Configuration File: render.yaml
+  • Service Name: campusiq-backend
+  • Runtime: Python 3.11.0
+  • WSGI Server: Gunicorn
+  • Build Command:
+      cd backend &&
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --noinput &&
+      python manage.py migrate
+  • Start Command:
+      cd backend &&
+      gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
+  • Auto-generated env vars: SECRET_KEY
+  • Debug mode: False in production
+
+DATABASE (Render PostgreSQL):
+  • Managed PostgreSQL instance on Render
+  • Connection via environment variables (DB_NAME, DB_USER, DB_PASSWORD, DB_HOST)
+
+FRONTEND DEPLOYMENT:
+  • Platform: Vercel or Netlify (Planned, not yet deployed)
+  • Build Command: npm run build (vite build)
+  • Output: dist/ directory
+
+ADDITIONAL FILES:
+  • create_download.pem — PEM certificate file (likely for secure connections)
+  • render.yaml — Render deployment configuration
+  • .gitignore — Comprehensive ignore rules for Python, Node, Django, Firebase
+
+════════════════════════════════════════════════════════════════════════════════════
+  7. ENVIRONMENT VARIABLES
+════════════════════════════════════════════════════════════════════════════════════
+
+BACKEND ENVIRONMENT VARIABLES:
+  ┌──────────────────────────────┬──────────────────────────────────────────────┐
+  │  Variable                    │  Purpose                                     │
+  ├──────────────────────────────┼──────────────────────────────────────────────┤
+  │  SECRET_KEY                  │  Django secret key for cryptographic signing │
+  │  DEBUG                       │  Django debug mode (True/False)              │
+  │  DB_NAME                     │  PostgreSQL database name                    │
+  │  DB_USER                     │  PostgreSQL database user                    │
+  │  DB_PASSWORD                 │  PostgreSQL database password                │
+  │  DB_HOST                     │  PostgreSQL host address                     │
+  │  DB_PORT                     │  PostgreSQL port (default: 5432)             │
+  │  FIREBASE_CREDENTIALS        │  Firebase service account JSON (as string)   │
+  │  GOOGLE_APPLICATION_CREDENTIALS│  Alternative: path to Firebase JSON file  │
+  │  EMAIL_HOST_USER             │  Gmail address for sending emails            │
+  │  EMAIL_HOST_PASSWORD         │  Gmail app password for SMTP authentication  │
+  └──────────────────────────────┴──────────────────────────────────────────────┘
+
+FRONTEND ENVIRONMENT VARIABLES (VITE_ prefix):
+  ┌──────────────────────────────────────┬──────────────────────────────────────┐
+  │  Variable                            │  Purpose                             │
+  ├──────────────────────────────────────┼──────────────────────────────────────┤
+  │  VITE_API_BASE_URL                   │  Backend API base URL                │
+  │  VITE_FIREBASE_API_KEY               │  Firebase project API key            │
+  │  VITE_FIREBASE_AUTH_DOMAIN           │  Firebase auth domain                │
+  │  VITE_FIREBASE_PROJECT_ID            │  Firebase project identifier         │
+  │  VITE_FIREBASE_STORAGE_BUCKET        │  Firebase storage bucket             │
+  │  VITE_FIREBASE_MESSAGING_SENDER_ID   │  Firebase Cloud Messaging sender ID  │
+  │  VITE_FIREBASE_APP_ID                │  Firebase application identifier     │
+  └──────────────────────────────────────┴──────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════════════
+  8. CURRENT PROJECT STATUS
+════════════════════════════════════════════════════════════════════════════════════
+
+  ✅ COMPLETED
+  ─────────────────────────────────────────────────────────────────────────────
+  [✅] Backend API fully developed and deployed on Render
+  [✅] All 6 database models designed and migrated (6 migration files)
+  [✅] Firebase Authentication integration (client + server)
+  [✅] All REST API endpoints implemented (24 endpoints across 6 groups)
+  [✅] Email Service — OTP, Welcome, and Approval emails with HTML templates
+  [✅] Role-based permission system (Admin, Faculty, HOD, Student)
+  [✅] Custom Firebase middleware for request authentication
+  [✅] Custom exception handler for standardized API errors
+  [✅] CORS configuration for cross-origin frontend requests
+  [✅] OTP service with 6-digit code generation and 10-minute expiry
+  [✅] Frontend project initialized with React 19 + Vite 6
+  [✅] Authentication pages — Login, Register, OTP Verification
+  [✅] Client-side routing with React Router v7 (10 routes)
+  [✅] Auth Context with Firebase state management
+  [✅] Centralized API service layer with Axios interceptors
+  [✅] Dashboard page with role-based views (Admin stats, Student view)
+  [✅] Events page — listing, filtering, search functionality
+  [✅] Event creation form (faculty/admin restricted)
+  [✅] Event detail page with registration/deregistration
+  [✅] Attendance page — faculty marking + student view
+  [✅] Notifications page with read/unread filtering
+  [✅] Profile page with view/edit modes
+  [✅] Layout with Navbar + Sidebar + responsive design
+  [✅] Dark theme with CSS variables and glassmorphism effects
+  [✅] Framer Motion animations throughout the UI
+  [✅] Protected route guards for authenticated pages
+  [✅] PostgreSQL database deployed on Render
+  [✅] Backend deployed on Render with Gunicorn
+  [✅] Design mockups created (Login, Register, Dashboard)
+
+  🔄 IN PROGRESS / NEEDS POLISH
+  ─────────────────────────────────────────────────────────────────────────────
+  [🔄] Frontend deployment to Vercel/Netlify
+  [🔄] Mobile responsiveness optimization
+  [🔄] UI refinements to match Expected_Frontend design mockups
+
+  📋 PLANNED / NOT YET STARTED
+  ─────────────────────────────────────────────────────────────────────────────
+  [📋] Real-time notifications via WebSockets
+  [📋] Push notifications (browser/mobile)
+  [📋] File upload functionality (profile pictures, event images)
+  [📋] Advanced analytics dashboard with charts and graphs
+  [📋] Timetable / class schedule management
+  [📋] Comprehensive unit and integration test suites
+  [📋] API rate limiting and throttling
+  [📋] Password reset functionality
+  [📋] Dark/Light theme toggle
+  [📋] Export attendance reports (CSV/PDF)
+  [📋] Search and filtering enhancements
+
+════════════════════════════════════════════════════════════════════════════════════
+  9. PLANNED FEATURES & ROADMAP
+════════════════════════════════════════════════════════════════════════════════════
+
+SHORT-TERM (Next Sprint):
+  • Deploy frontend to Vercel or Netlify
+  • Optimize mobile responsiveness
+  • Match UI to Expected_Frontend design mockups
+  • Add password reset flow
+
+MID-TERM:
+  • WebSocket integration for real-time notifications
+  • File upload support (profile pictures, event banners)
+  • Advanced admin analytics with charts (Chart.js or Recharts)
+  • Attendance report export (CSV/PDF)
+  • Timetable management module
+
+LONG-TERM:
+  • Push notifications (Firebase Cloud Messaging)
+  • Mobile app (React Native or Flutter)
+  • AI-powered analytics and insights
+  • Integration with Learning Management Systems (LMS)
+  • Multi-campus support
+
+════════════════════════════════════════════════════════════════════════════════════
+  ADDITIONAL PROJECT FILES
+════════════════════════════════════════════════════════════════════════════════════
+
+  • Expected_Frontend/         — Design reference screenshots
+      - Dashboard.png           (Expected dashboard design)
+      - Login_page.png          (Expected login page design)
+      - Register.png            (Expected registration page design)
+
+  • docs/                      — Documentation directory (currently empty)
+
+  • generate_word_doc.py       — Python script to generate project documentation
+                                 as a Word document (.docx) using python-docx
+
+  • CampusIQ_Project_Info.txt  — Previous version of project information file
+
+  • CampusIQ_Project_Information.docx — Word document with project details
+
+  • render.yaml                — Render deployment configuration
+
+  • create_download.pem        — PEM certificate file
+
+  • host.jpeg                  — Hosting-related reference image
+  • register.jpeg              — Registration-related reference image
+
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║                          END OF PROJECT DOCUMENTATION                          ║
+║                                                                                ║
+║  Project: CampusIQ — Smart Campus Management System                            ║
+║  Total Backend Dependencies: 8 packages                                        ║
+║  Total Frontend Dependencies: 8 production + 7 dev packages                    ║
+║  Total Database Models: 6                                                      ║
+║  Total API Endpoints: 24                                                       ║
+║  Total Frontend Pages: 10                                                      ║
+║  Total Frontend Components: 6                                                  ║
+║  Total Routes: 10 (3 public + 7 protected)                                     ║
+║                                                                                ║
+╚══════════════════════════════════════════════════════════════════════════════════╝

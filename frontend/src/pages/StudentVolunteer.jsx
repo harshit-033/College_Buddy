@@ -1,15 +1,107 @@
 import { useEffect, useState } from "react"
 import API, { API_BASE } from "../api/api"
 import { getToken } from "../utils/auth"
+import { resolveUploadUrl } from "../utils/url"
 import StudentSidebar from "../components/StudentSidebar"
 import { Calendar, MapPin, CheckCircle, Clock, ShieldAlert, ShieldCheck, QrCode } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "react-hot-toast"
 
 function StudentVolunteer() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const token = getToken()
+
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleVolunteerPayment = async (eventId, eventTitle) => {
+    const token = getToken();
+    if (!token) {
+      toast.error("Session expired. Please login again.");
+      return;
+    }
+
+    try {
+      const res = await API.post("/register-event", null, {
+        params: { event_id: eventId },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data.requires_payment) {
+        const payData = res.data;
+        const scriptLoaded = await loadRazorpay();
+        if (!scriptLoaded) {
+          toast.error("Failed to load Razorpay SDK.");
+          return;
+        }
+
+        const options = {
+          key: payData.key_id,
+          amount: payData.amount * 100,
+          currency: "INR",
+          name: "CampusIQ",
+          description: `Volunteer Fee for ${eventTitle}`,
+          order_id: payData.order_id,
+          handler: async (response) => {
+            try {
+              await API.post("/verify-payment", {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              }, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+
+              toast.success("Payment successful! You are now registered as a volunteer.");
+              
+              API.get("/student/volunteer-events", {
+                headers: { Authorization: `Bearer ${token}` }
+              }).then(res => setEvents(res.data));
+
+            } catch (err) {
+              toast.error(err.response?.data?.detail || "Payment verification failed");
+            }
+          },
+          prefill: {
+            name: payData.user_name,
+            email: payData.user_email,
+            contact: payData.user_phone
+          },
+          theme: {
+            color: "#10B981"
+          },
+          modal: {
+            ondismiss: () => {
+              toast.error("Payment cancelled");
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        toast.success("Registered as volunteer successfully!");
+        API.get("/student/volunteer-events", {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(res => setEvents(res.data));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Error registering volunteer");
+    }
+  };
 
   useEffect(() => {
     API.get("/student/volunteer-events", {
@@ -42,7 +134,7 @@ function StudentVolunteer() {
             >
               {event.event_poster ? (
                 <img
-                  src={`${API_BASE}/uploads/${event.event_poster}`}
+                  src={resolveUploadUrl(event.event_poster)}
                   className="w-full h-32 object-cover"
                   alt={event.event_title}
                 />
@@ -73,12 +165,21 @@ function StudentVolunteer() {
                   </p>
                 )}
 
-                {event.status === "approved" && (
+                {event.status === "approved" && event.registered && (
                   <button
                     onClick={() => navigate(`/scanner/${event.event_id}`)}
                     className="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2"
                   >
                     <QrCode size={16} /> Open Scanner
+                  </button>
+                )}
+
+                {event.status === "approved" && !event.registered && (
+                  <button
+                    onClick={() => handleVolunteerPayment(event.event_id, event.event_title)}
+                    className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 shadow-sm"
+                  >
+                    Pay Volunteer Fee (₹{event.volunteer_fee}) & Register
                   </button>
                 )}
               </div>

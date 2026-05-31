@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy import inspect, text
 import uuid
 import os
 import qrcode
@@ -19,6 +20,11 @@ from database import engine, Base, SessionLocal
 import models
 from security import hash_password, verify_password, create_access_token
 from auth import get_current_user
+import razorpay
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_SvY6fnRumMIisk")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "hViFlN2pXZRj4EbB3c9GYJMe")
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 app = FastAPI(title="CampusIQ API")
 
@@ -54,6 +60,79 @@ app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 # Create tables automatically for simple setups. 
 # For production/deployments, use 'alembic upgrade head' instead.
 Base.metadata.create_all(bind=engine)
+
+def _ensure_sqlite_schema_compat():
+    """
+    Dev-safety net for SQLite files created with older schemas.
+
+    SQLAlchemy `create_all()` does not add new columns to existing tables,
+    which can break core flows (e.g. event creation) when `test.db` is stale.
+    This only runs for SQLite and only adds missing columns.
+    """
+    try:
+        if not str(engine.url).startswith("sqlite"):
+            return
+
+        insp = inspect(engine)
+        table_names = set(insp.get_table_names())
+
+        desired = {
+            "events": {
+                "volunteer_fee": "REAL DEFAULT 0",
+                "max_volunteers": "INTEGER",
+                "event_date": "DATETIME",
+                "event_end_date": "DATETIME",
+                "updated_at": "DATETIME",
+            },
+            "users": {
+                "profile_photo": "TEXT",
+                "phone": "TEXT",
+                "address": "TEXT",
+                "student_type": "TEXT",
+                "institution_name": "TEXT",
+                "board": "TEXT",
+                "grade": "TEXT",
+                "semester": "TEXT",
+                "course": "TEXT",
+                "department": "TEXT",
+                "section": "TEXT",
+                "roll_number": "TEXT",
+                "org_name": "TEXT",
+                "org_address": "TEXT",
+                "updated_at": "DATETIME",
+            },
+            "volunteer_whitelist": {
+                "user_id": "INTEGER",
+                "status": "TEXT DEFAULT 'pending'",
+                "updated_at": "DATETIME",
+            },
+            "payments": {
+                "payment_id": "TEXT",
+                "signature": "TEXT",
+                "currency": "TEXT DEFAULT 'INR'",
+                "status": "TEXT DEFAULT 'pending'",
+                "updated_at": "DATETIME",
+            },
+            "registrations": {
+                "updated_at": "DATETIME",
+            },
+        }
+
+        for table, columns in desired.items():
+            if table not in table_names:
+                continue
+
+            existing_cols = {c["name"] for c in insp.get_columns(table)}
+            for col_name, col_ddl in columns.items():
+                if col_name in existing_cols:
+                    continue
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_ddl}"))
+    except Exception as e:
+        # Never block app startup for a best-effort compatibility patch.
+        print(f"WARNING: SQLite schema compatibility check failed: {e}")
+
+_ensure_sqlite_schema_compat()
 
 def get_db():
     db = SessionLocal()
@@ -283,6 +362,7 @@ def create_event(
     description: str = Form(...),
     venue: str = Form(...),
     fee: float = Form(...),
+    volunteer_fee: float = Form(0.0),
     participant_limit: int = Form(...),
     max_volunteers: Optional[int] = Form(None),
     event_date: str = Form(None),
@@ -294,6 +374,21 @@ def create_event(
 
     if user["role"] != "host":
         raise HTTPException(status_code=403, detail="Only hosts can create events")
+
+    if participant_limit is None or participant_limit <= 0:
+        raise HTTPException(status_code=400, detail="participant_limit must be greater than 0")
+
+    if fee is not None and fee < 0:
+        raise HTTPException(status_code=400, detail="fee cannot be negative")
+
+    if volunteer_fee is not None and volunteer_fee < 0:
+        raise HTTPException(status_code=400, detail="volunteer_fee cannot be negative")
+
+    if max_volunteers is not None:
+        if max_volunteers <= 0:
+            raise HTTPException(status_code=400, detail="max_volunteers must be greater than 0")
+        if max_volunteers > participant_limit:
+            raise HTTPException(status_code=400, detail="max_volunteers cannot exceed participant_limit")
 
     poster_filename = None
 
@@ -326,11 +421,15 @@ def create_event(
         except ValueError:
             pass
 
+    if parsed_event_date and parsed_event_end_date and parsed_event_end_date < parsed_event_date:
+        raise HTTPException(status_code=400, detail="event_end_date cannot be before event_date")
+
     event = models.Event(
         title=title,
         description=description,
         venue=venue,
         fee=fee,
+        volunteer_fee=volunteer_fee,
         participant_limit=participant_limit,
         max_volunteers=max_volunteers,
         host_id=user["id"],
@@ -356,6 +455,7 @@ def get_single_event(event_id: int, db: Session = Depends(get_db)):
         "description": event.description,
         "venue": event.venue,
         "fee": event.fee,
+        "volunteer_fee": event.volunteer_fee,
         "participant_limit": event.participant_limit,
         "max_volunteers": event.max_volunteers,
         "poster": event.poster,
@@ -365,7 +465,7 @@ def get_single_event(event_id: int, db: Session = Depends(get_db)):
     }
 
 @app.get("/events")
-def get_events(search: str = Query(None), db: Session = Depends(get_db)):
+def get_events(search: str = Query(None), db: Session = Depends(get_db), user=Depends(get_current_user)):
     query = db.query(models.Event)
 
     if search:
@@ -378,7 +478,52 @@ def get_events(search: str = Query(None), db: Session = Depends(get_db)):
             )
         )
 
-    return query.all()
+    all_events = query.all()
+    results = []
+    
+    # Get current user record to check email
+    user_record = db.query(models.User).filter(models.User.id == user["id"]).first()
+    
+    for event in all_events:
+        # Check registration
+        reg = db.query(models.Registration).filter(
+            models.Registration.event_id == event.id,
+            models.Registration.user_id == user["id"]
+        ).first()
+        
+        # Check volunteer whitelist
+        volunteer = db.query(models.VolunteerWhitelist).filter(
+            models.VolunteerWhitelist.event_id == event.id,
+            models.VolunteerWhitelist.email == user_record.email
+        ).first()
+        
+        # Determine applicable fee
+        is_approved_volunteer = volunteer and volunteer.status == "approved"
+        applicable_fee = event.volunteer_fee if is_approved_volunteer else event.fee
+        
+        results.append({
+            "id": event.id,
+            "title": event.title,
+            "description": event.description,
+            "venue": event.venue,
+            "fee": event.fee,
+            "volunteer_fee": event.volunteer_fee,
+            "participant_limit": event.participant_limit,
+            "max_volunteers": event.max_volunteers,
+            "poster": event.poster,
+            "event_date": event.event_date.isoformat() if event.event_date else None,
+            "event_end_date": event.event_end_date.isoformat() if event.event_end_date else None,
+            "host_id": event.host_id,
+            
+            # Relation fields
+            "has_ticket": reg is not None,
+            "ticket_checked_in": reg.checked_in if reg else False,
+            "qr_image": reg.qr_code if reg else None,
+            "volunteer_status": volunteer.status if volunteer else None,
+            "applicable_fee": applicable_fee
+        })
+        
+    return results
 
 @app.get("/host/events")
 def get_host_events(db: Session = Depends(get_db), user=Depends(get_current_user)):
@@ -412,6 +557,7 @@ def edit_event(
     description: str = Form(...),
     venue: str = Form(...),
     fee: float = Form(...),
+    volunteer_fee: float = Form(0.0),
     participant_limit: int = Form(...),
     max_volunteers: Optional[int] = Form(None),
     event_date: str = Form(None),
@@ -428,10 +574,26 @@ def edit_event(
     if event.host_id != user["id"]:
         raise HTTPException(status_code=403, detail="Not allowed")
 
+    if participant_limit is None or participant_limit <= 0:
+        raise HTTPException(status_code=400, detail="participant_limit must be greater than 0")
+
+    if fee is not None and fee < 0:
+        raise HTTPException(status_code=400, detail="fee cannot be negative")
+
+    if volunteer_fee is not None and volunteer_fee < 0:
+        raise HTTPException(status_code=400, detail="volunteer_fee cannot be negative")
+
+    if max_volunteers is not None:
+        if max_volunteers <= 0:
+            raise HTTPException(status_code=400, detail="max_volunteers must be greater than 0")
+        if max_volunteers > participant_limit:
+            raise HTTPException(status_code=400, detail="max_volunteers cannot exceed participant_limit")
+
     event.title = title
     event.description = description
     event.venue = venue
     event.fee = fee
+    event.volunteer_fee = volunteer_fee
     event.participant_limit = participant_limit
     event.max_volunteers = max_volunteers
 
@@ -446,6 +608,9 @@ def edit_event(
             event.event_end_date = datetime.fromisoformat(event_end_date)
         except ValueError:
             pass
+
+    if event.event_date and event.event_end_date and event.event_end_date < event.event_date:
+        raise HTTPException(status_code=400, detail="event_end_date cannot be before event_date")
 
     db.commit()
 
@@ -476,6 +641,53 @@ def register_event(event_id: int, db: Session = Depends(get_db), current_user=De
     if existing:
         raise HTTPException(status_code=400, detail="Already registered")
 
+    # Get current user details
+    user_record = db.query(models.User).filter(models.User.id == current_user["id"]).first()
+
+    # Determine fee
+    volunteer = db.query(models.VolunteerWhitelist).filter(
+        models.VolunteerWhitelist.event_id == event_id,
+        models.VolunteerWhitelist.email == user_record.email
+    ).first()
+    
+    is_approved_volunteer = volunteer and volunteer.status == "approved"
+    applicable_fee = event.volunteer_fee if is_approved_volunteer else event.fee
+
+    if applicable_fee > 0:
+        # Paid event — create Razorpay Order
+        try:
+            order_data = {
+                "amount": int(applicable_fee * 100),  # in paisa
+                "currency": "INR",
+                "payment_capture": 1
+            }
+            order = razorpay_client.order.create(data=order_data)
+            
+            # Save pending payment record
+            payment = models.Payment(
+                user_id=current_user["id"],
+                event_id=event_id,
+                order_id=order["id"],
+                amount=applicable_fee,
+                status="pending"
+            )
+            db.add(payment)
+            db.commit()
+            
+            return {
+                "requires_payment": True,
+                "order_id": order["id"],
+                "amount": applicable_fee,
+                "key_id": RAZORPAY_KEY_ID,
+                "event_title": event.title,
+                "user_name": user_record.name,
+                "user_email": user_record.email,
+                "user_phone": user_record.phone or "9999999999"
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Razorpay Order creation failed: {str(e)}")
+
+    # Free event — directly register
     qr_token = str(uuid.uuid4())
 
     registration = models.Registration(
@@ -510,6 +722,7 @@ def register_event(event_id: int, db: Session = Depends(get_db), current_user=De
         img.save(filepath)
 
     return {
+        "requires_payment": False,
         "message": "Event registered successfully",
         "qr_token": qr_token,
         "qr_image": qr_image_url
@@ -525,6 +738,14 @@ def get_my_tickets(db: Session = Depends(get_db), user=Depends(get_current_user)
     for reg in registrations:
         event = db.query(models.Event).filter(models.Event.id == reg.event_id).first()
         if event:
+            # Check for successful payment
+            payment = db.query(models.Payment).filter(
+                models.Payment.user_id == user["id"],
+                models.Payment.event_id == reg.event_id,
+                models.Payment.status == "success"
+            ).first()
+            payment_id = (payment.payment_id or payment.order_id) if payment else None
+
             tickets.append({
                 "id": reg.id,
                 "event_id": event.id,
@@ -537,7 +758,8 @@ def get_my_tickets(db: Session = Depends(get_db), user=Depends(get_current_user)
                 "qr_code": reg.qr_code,
                 "qr_image": cloudinary.utils.cloudinary_url(f"campusiq/qr_codes/{reg.qr_code}")[0] if os.getenv("CLOUDINARY_URL") else f"/qr_codes/{reg.qr_code}.png",
                 "checked_in": reg.checked_in,
-                "booked_at": reg.created_at.isoformat() if reg.created_at else None
+                "booked_at": reg.created_at.isoformat() if reg.created_at else None,
+                "payment_id": payment_id
             })
 
     return tickets
@@ -635,6 +857,10 @@ def get_student_volunteer_events(db: Session = Depends(get_db), user=Depends(get
     for entry in entries:
         event = db.query(models.Event).filter(models.Event.id == entry.event_id).first()
         if event:
+            reg = db.query(models.Registration).filter(
+                models.Registration.event_id == event.id,
+                models.Registration.user_id == user["id"]
+            ).first()
             results.append({
                 "id": entry.id,
                 "event_id": event.id,
@@ -643,7 +869,11 @@ def get_student_volunteer_events(db: Session = Depends(get_db), user=Depends(get
                 "event_date": event.event_date.isoformat() if event.event_date else None,
                 "event_poster": event.poster,
                 "status": entry.status,
-                "applied_at": entry.created_at.isoformat() if entry.created_at else None
+                "applied_at": entry.created_at.isoformat() if entry.created_at else None,
+                "registered": reg is not None,
+                "qr_image": reg.qr_code if reg else None,
+                "volunteer_fee": event.volunteer_fee,
+                "fee": event.fee
             })
     return results
 
@@ -676,7 +906,8 @@ def update_volunteer_request(whitelist_id: int, data: UpdateVolunteerStatusReque
                 raise HTTPException(status_code=400, detail="Volunteer positions are full for this event")
                 
         if entry.user_id:
-            create_volunteer_registration(entry.user_id, entry.event_id, db)
+            if event.fee == 0 or event.volunteer_fee == 0:
+                create_volunteer_registration(entry.user_id, entry.event_id, db)
 
     entry.status = data.status
     db.commit()
@@ -730,7 +961,8 @@ def whitelist_volunteer(data: WhitelistRequest, db: Session = Depends(get_db), u
     db.add(entry)
     
     if registered_user:
-        create_volunteer_registration(registered_user.id, data.event_id, db)
+        if event.fee == 0 or event.volunteer_fee == 0:
+            create_volunteer_registration(registered_user.id, data.event_id, db)
 
     db.commit()
     db.refresh(entry)
@@ -790,7 +1022,8 @@ def bulk_whitelist_volunteers(data: BulkWhitelistRequest, db: Session = Depends(
         current_approved_count += 1
         
         if registered_user:
-            create_volunteer_registration(registered_user.id, data.event_id, db)
+            if event.fee == 0 or event.volunteer_fee == 0:
+                create_volunteer_registration(registered_user.id, data.event_id, db)
                 
         added.append(email)
 
@@ -884,4 +1117,236 @@ def get_event_stats(event_id: int, db: Session = Depends(get_db), user=Depends(g
         "total_registrations": total_registrations,
         "total_checkins": total_checkins,
         "participant_limit": event.participant_limit
+    }
+
+# ─── PAYMENTS & RECEIPTS ─────────────────────────────────────────────────
+
+class VerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+@app.post("/verify-payment")
+def verify_payment(data: VerifyPaymentRequest, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    # Verify the signature
+    params_dict = {
+        'razorpay_order_id': data.razorpay_order_id,
+        'razorpay_payment_id': data.razorpay_payment_id,
+        'razorpay_signature': data.razorpay_signature
+    }
+    try:
+        razorpay_client.utility.verify_payment_signature(params_dict)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid payment signature")
+    
+    # Signature is valid. Find the payment record.
+    payment = db.query(models.Payment).filter(models.Payment.order_id == data.razorpay_order_id).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment record not found")
+        
+    if payment.status == "success":
+        reg = db.query(models.Registration).filter(
+            models.Registration.user_id == payment.user_id,
+            models.Registration.event_id == payment.event_id
+        ).first()
+        return {
+            "message": "Payment already verified",
+            "qr_token": reg.qr_code if reg else None,
+            "payment_id": payment.payment_id
+        }
+        
+    payment.status = "success"
+    payment.payment_id = data.razorpay_payment_id
+    payment.signature = data.razorpay_signature
+    
+    # Create the registration
+    qr_token = str(uuid.uuid4())
+    registration = models.Registration(
+        user_id=payment.user_id,
+        event_id=payment.event_id,
+        qr_code=qr_token
+    )
+    db.add(registration)
+    db.commit()
+    db.refresh(registration)
+    
+    # Generate QR Code image (local or Cloudinary)
+    qr_data = f"TICKET:{qr_token}"
+    img = qrcode.make(qr_data)
+    
+    qr_image_url = f"/qr_codes/{qr_token}.png"
+    
+    if os.getenv("CLOUDINARY_URL"):
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='PNG')
+        img_byte_arr = img_byte_arr.getvalue()
+        
+        upload_result = cloudinary.uploader.upload(
+            img_byte_arr,
+            public_id=f"{qr_token}",
+            folder="campusiq/qr_codes"
+        )
+        qr_image_url = upload_result["secure_url"]
+    else:
+        filename = f"{qr_token}.png"
+        filepath = os.path.join(QR_CODES_DIR, filename)
+        img.save(filepath)
+        
+    return {
+        "message": "Payment verified and registration successful",
+        "qr_token": qr_token,
+        "qr_image": qr_image_url,
+        "payment_id": payment.payment_id
+    }
+
+@app.get("/download-receipt/{payment_id}")
+def download_receipt(payment_id: str, db: Session = Depends(get_db)):
+    # Fetch payment
+    payment = db.query(models.Payment).filter(
+        or_(models.Payment.payment_id == payment_id, models.Payment.order_id == payment_id)
+    ).first()
+    if not payment or payment.status != "success":
+        raise HTTPException(status_code=404, detail="Successful payment record not found")
+        
+    user = db.query(models.User).filter(models.User.id == payment.user_id).first()
+    event = db.query(models.Event).filter(models.Event.id == payment.event_id).first()
+    
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    from fastapi.responses import StreamingResponse
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+    
+    styles = getSampleStyleSheet()
+    
+    title_style = ParagraphStyle(
+        'TitleStyle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=24,
+        textColor=colors.HexColor('#4F46E5'),
+        spaceAfter=15
+    )
+    
+    text_style = ParagraphStyle(
+        'TextStyle',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        spaceAfter=6
+    )
+    
+    story = []
+    
+    story.append(Paragraph("CampusIQ — Payment Receipt", title_style))
+    story.append(Spacer(1, 10))
+    
+    data = [
+        [Paragraph("<b>Receipt Number:</b>", text_style), Paragraph(payment.payment_id or payment.order_id, text_style)],
+        [Paragraph("<b>Date of Transaction:</b>", text_style), Paragraph(payment.updated_at.strftime("%d %b %Y, %I:%M %p") if payment.updated_at else payment.created_at.strftime("%d %b %Y, %I:%M %p"), text_style)],
+        [Paragraph("<b>Attendee Name:</b>", text_style), Paragraph(user.name if user else "Unknown", text_style)],
+        [Paragraph("<b>Attendee Email:</b>", text_style), Paragraph(user.email if user else "Unknown", text_style)],
+        [Paragraph("<b>Event Title:</b>", text_style), Paragraph(event.title if event else "Unknown Event", text_style)],
+        [Paragraph("<b>Event Venue:</b>", text_style), Paragraph(event.venue if event else "N/A", text_style)],
+        [Paragraph("<b>Amount Paid:</b>", text_style), Paragraph(f"INR {payment.amount:.2f}", text_style)],
+        [Paragraph("<b>Payment Status:</b>", text_style), Paragraph("SUCCESS", ParagraphStyle('Success', parent=text_style, textColor=colors.HexColor('#16A34A'), fontName='Helvetica-Bold'))]
+    ]
+    
+    t = Table(data, colWidths=[150, 350])
+    t.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F9FAFB')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#E5E7EB')),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#F3F4F6')),
+        ('TOPPADDING', (0,0), (-1,-1), 10),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+    ]))
+    
+    story.append(t)
+    story.append(Spacer(1, 40))
+    story.append(Paragraph("Thank you for your booking! This is a computer generated receipt and does not require a signature.", text_style))
+    
+    doc.build(story)
+    buffer.seek(0)
+    
+    headers = {
+        'Content-Disposition': f'attachment; filename="CampusIQ_Receipt_{payment_id}.pdf"'
+    }
+    return StreamingResponse(buffer, media_type='application/pdf', headers=headers)
+
+@app.get("/host/analytics")
+def get_host_analytics(db: Session = Depends(get_db), user=Depends(get_current_user)):
+    if user["role"] != "host":
+        raise HTTPException(status_code=403, detail="Only hosts allowed")
+        
+    events = db.query(models.Event).filter(models.Event.host_id == user["id"]).all()
+    event_ids = [e.id for e in events]
+    
+    # Successful payments for host's events
+    payments = db.query(models.Payment).filter(
+        models.Payment.event_id.in_(event_ids),
+        models.Payment.status == "success"
+    ).all()
+    
+    total_revenue = sum(p.amount for p in payments)
+    
+    # Group payments by event
+    event_breakdown = []
+    for event in events:
+        event_payments = [p for p in payments if p.event_id == event.id]
+        event_revenue = sum(p.amount for p in event_payments)
+        
+        # Count ticket types
+        registrations = db.query(models.Registration).filter(models.Registration.event_id == event.id).all()
+        reg_user_ids = [r.user_id for r in registrations]
+        
+        volunteer_regs_count = 0
+        if reg_user_ids:
+            users = db.query(models.User).filter(models.User.id.in_(reg_user_ids)).all()
+            user_emails = [u.email for u in users]
+            volunteer_regs_count = db.query(models.VolunteerWhitelist).filter(
+                models.VolunteerWhitelist.event_id == event.id,
+                models.VolunteerWhitelist.email.in_(user_emails),
+                models.VolunteerWhitelist.status == "approved"
+            ).count()
+            
+        student_regs_count = len(registrations) - volunteer_regs_count
+        
+        event_breakdown.append({
+            "id": event.id,
+            "title": event.title,
+            "venue": event.venue,
+            "fee": event.fee,
+            "volunteer_fee": event.volunteer_fee,
+            "participant_limit": event.participant_limit,
+            "actual_revenue": event_revenue,
+            "total_registrations": len(registrations),
+            "student_registrations": student_regs_count,
+            "volunteer_registrations": volunteer_regs_count,
+            "potential_revenue": (event.fee * event.participant_limit) if event.participant_limit else 0.0
+        })
+        
+    # Get recent successful payments
+    recent_transactions = []
+    sorted_payments = sorted(payments, key=lambda x: x.created_at or datetime.min, reverse=True)[:10]
+    for p in sorted_payments:
+        buyer = db.query(models.User).filter(models.User.id == p.user_id).first()
+        evt = db.query(models.Event).filter(models.Event.id == p.event_id).first()
+        recent_transactions.append({
+            "payment_id": p.payment_id or p.order_id,
+            "student_name": buyer.name if buyer else "Unknown",
+            "event_title": evt.title if evt else "Unknown Event",
+            "amount": p.amount,
+            "date": (p.updated_at or p.created_at).isoformat()
+        })
+        
+    return {
+        "total_events": len(events),
+        "total_revenue": total_revenue,
+        "event_breakdown": event_breakdown,
+        "recent_transactions": recent_transactions
     }

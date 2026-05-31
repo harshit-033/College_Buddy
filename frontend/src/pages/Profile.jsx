@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { User, Mail, Phone, MapPin, University, BookOpen, GraduationCap, Building2, Save, Camera, Smartphone, School, Hash, Layers, Layout, Landmark } from "lucide-react"
 import API, { API_BASE } from "../api/api"
 import { getToken, getUserRole } from "../utils/auth"
+import { resolveUploadUrl } from "../utils/url"
 import Sidebar from "../components/Sidebar"
 import StudentSidebar from "../components/StudentSidebar"
 import { toast } from "react-hot-toast"
@@ -9,7 +10,7 @@ import { toast } from "react-hot-toast"
 function Profile() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [role, setRole] = useState(getUserRole())
+  const [role] = useState(getUserRole())
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -44,7 +45,7 @@ function Profile() {
       })
       setProfile(res.data)
       if (res.data.profile_photo) {
-        setPreview(`${API_BASE}/uploads/${res.data.profile_photo}`)
+        setPreview(resolveUploadUrl(res.data.profile_photo))
       }
     } catch (err) {
       console.error("Error fetching profile:", err)

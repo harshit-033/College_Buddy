@@ -45,6 +45,7 @@ class Event(Base):
     description = Column(String)
     venue = Column(String)
     fee = Column(Float, default=0)
+    volunteer_fee = Column(Float, default=0.0)
     participant_limit = Column(Integer)
     max_volunteers = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -88,3 +89,21 @@ class VolunteerWhitelist(Base):
     __table_args__ = (
         UniqueConstraint('email', 'event_id', name='_email_event_uc'),
     )
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"))
+    
+    order_id = Column(String, unique=True, index=True)
+    payment_id = Column(String, unique=True, index=True, nullable=True)
+    signature = Column(String, nullable=True)
+    amount = Column(Float, nullable=False)
+    currency = Column(String, default="INR")
+    status = Column(String, default="pending", index=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

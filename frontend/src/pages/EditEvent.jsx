@@ -19,6 +19,7 @@ function EditEvent() {
     date: "",
     endDate: "",
     fee: "",
+    volunteerFee: "",
     limit: "",
     maxVolunteers: ""
   })
@@ -42,6 +43,7 @@ function EditEvent() {
           date: e.event_date ? e.event_date.slice(0, 16) : "",
           endDate: e.event_end_date ? e.event_end_date.slice(0, 16) : "",
           fee: e.fee ?? "",
+          volunteerFee: e.volunteer_fee ?? "",
           limit: e.participant_limit ?? "",
           maxVolunteers: e.max_volunteers ?? ""
         })
@@ -62,6 +64,7 @@ function EditEvent() {
     formData.append("description", values.description)
     formData.append("venue", values.venue)
     formData.append("fee", Number(values.fee) || 0)
+    formData.append("volunteer_fee", Number(values.volunteerFee) || 0)
     formData.append("participant_limit", Number(values.limit) || 0)
     if (values.date) formData.append("event_date", values.date)
     if (values.endDate) formData.append("event_end_date", values.endDate)

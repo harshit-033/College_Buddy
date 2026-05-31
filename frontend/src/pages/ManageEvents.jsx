@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
-import API, { API_BASE } from "../api/api"
+import API from "../api/api"
 import { getToken } from "../utils/auth"
+import { resolveUploadUrl } from "../utils/url"
 import Sidebar from "../components/Sidebar"
 import { useNavigate } from "react-router-dom"
 import { Calendar, MapPin, IndianRupee, Users, Pencil, Trash2 } from "lucide-react"
@@ -23,6 +24,7 @@ function ManageEvents() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEvents()
   }, [])
 
@@ -79,7 +81,7 @@ function ManageEvents() {
 
                 {event.poster ? (
                   <img
-                    src={`${API_BASE}/uploads/${event.poster}`}
+                    src={resolveUploadUrl(event.poster)}
                     className="w-full h-36 object-cover"
                     alt={event.title}
                   />

@@ -23,9 +23,9 @@ function StudentSidebar() {
       <div>
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shadow-sm border border-gray-100">
-            <img src="/logo.png" alt="CampusIQ Logo" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="CollegeBuddy Logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">CAMPUS_IQ</h1>
+          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">COLLEGE_BUDDY</h1>
         </div>
         <p className="text-xs text-gray-400 uppercase tracking-wider mb-4 px-3">Student Portal</p>
 

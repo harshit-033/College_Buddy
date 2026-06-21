@@ -93,7 +93,7 @@ function Events() {
           key: payData.key_id,
           amount: payData.amount * 100, // in paisa
           currency: "INR",
-          name: "CampusIQ",
+          name: "CollegeBuddy",
           description: `Ticket Registration for ${eventTitle}`,
           order_id: payData.order_id,
           handler: async (response) => {
@@ -237,7 +237,7 @@ function Events() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {events.map(event => (
                 <div
                   key={event.id}
@@ -246,17 +246,17 @@ function Events() {
                   {event.poster ? (
                     <img
                       src={resolveUploadUrl(event.poster)}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
                       alt={event.title}
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+                    <div className="w-full h-40 bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
                       <Calendar size={48} className="text-white/70" />
                     </div>
                   )}
 
-                  <div className="p-5">
-                    <h2 className="text-xl font-semibold mb-3 text-gray-800">{event.title}</h2>
+                  <div className="p-4">
+                    <h2 className="text-lg font-semibold mb-2 text-gray-800">{event.title}</h2>
 
                     <p className="text-gray-500 text-sm mb-1 flex items-center gap-2">
                       <MapPin size={14} className="text-blue-500" /> {event.venue}

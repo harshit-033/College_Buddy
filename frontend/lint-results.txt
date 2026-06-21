@@ -3,16 +3,16 @@
 > eslint .
 
 
-C:\Users\harsh\OneDrive\Desktop\CampusIQ\frontend\src\pages\EditEvent.jsx
+C:\Users\harsh\OneDrive\Desktop\CollegeBuddy\frontend\src\pages\EditEvent.jsx
   39:10  error  'err' is defined but never used  no-unused-vars
 
-C:\Users\harsh\OneDrive\Desktop\CampusIQ\frontend\src\pages\Host.jsx
+C:\Users\harsh\OneDrive\Desktop\CollegeBuddy\frontend\src\pages\Host.jsx
   33:14  error  'err' is defined but never used  no-unused-vars
 
-C:\Users\harsh\OneDrive\Desktop\CampusIQ\frontend\src\pages\ManageEvents.jsx
+C:\Users\harsh\OneDrive\Desktop\CollegeBuddy\frontend\src\pages\ManageEvents.jsx
   22:6  warning  React Hook useEffect has a missing dependency: 'fetchEvents'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
 
-C:\Users\harsh\OneDrive\Desktop\CampusIQ\frontend\src\pages\Register.jsx
+C:\Users\harsh\OneDrive\Desktop\CollegeBuddy\frontend\src\pages\Register.jsx
   21:13  error  'res' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
 
 Γ£û 4 problems (3 errors, 1 warning)

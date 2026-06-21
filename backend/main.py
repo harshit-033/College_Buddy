@@ -26,7 +26,7 @@ RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_SvY6fnRumMIisk")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "hViFlN2pXZRj4EbB3c9GYJMe")
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
-app = FastAPI(title="CampusIQ API")
+app = FastAPI(title="CollegeBuddy API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -128,6 +128,13 @@ def _ensure_sqlite_schema_compat():
                     continue
                 with engine.begin() as conn:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_ddl}"))
+
+        with engine.begin() as conn:
+            for table in ("payments", "volunteer_whitelist", "registrations"):
+                if table in table_names:
+                    conn.execute(text(
+                        f"DELETE FROM {table} WHERE event_id NOT IN (SELECT id FROM events)"
+                    ))
     except Exception as e:
         # Never block app startup for a best-effort compatibility patch.
         print(f"WARNING: SQLite schema compatibility check failed: {e}")
@@ -149,7 +156,7 @@ model = joblib.load(model_path)
 
 @app.get("/")
 def home():
-    return {"message": "CampusIQ Backend Running"}
+    return {"message": "CollegeBuddy Backend Running"}
 
 from pydantic import BaseModel
 from typing import Optional, List
@@ -167,7 +174,7 @@ def create_volunteer_registration(user_id: int, event_id: int, db: Session):
             qr_code=qr_code_str
         )
         db.add(new_reg)
-        db.commit() # Commit to get potential IDs if needed, though not strictly required here
+        db.commit()
         
         qr_data = f"TICKET:{qr_code_str}"
         img = qrcode.make(qr_data)
@@ -180,7 +187,7 @@ def create_volunteer_registration(user_id: int, event_id: int, db: Session):
             upload_result = cloudinary.uploader.upload(
                 img_byte_arr,
                 public_id=f"qr_codes/{qr_code_str}",
-                folder="campusiq/qr_codes"
+                folder="collegebuddy/qr_codes"
             )
             # We don't need to save the URL in the DB for Registration because it's derived from qr_code token
         else:
@@ -334,7 +341,7 @@ def update_user_profile(
         if os.getenv("CLOUDINARY_URL"):
             upload_result = cloudinary.uploader.upload(
                 profile_photo.file,
-                folder="campusiq/profiles",
+                folder="collegebuddy/profiles",
                 public_id=f"profile_{user.id}"
             )
             user.profile_photo = upload_result["secure_url"]
@@ -396,7 +403,7 @@ def create_event(
         if os.getenv("CLOUDINARY_URL"):
             upload_result = cloudinary.uploader.upload(
                 poster.file,
-                folder="campusiq/posters"
+                folder="collegebuddy/posters"
             )
             poster_filename = upload_result["secure_url"]
         else:
@@ -544,7 +551,9 @@ def delete_event(event_id: int, db: Session = Depends(get_db), user=Depends(get_
     if event.host_id != user["id"]:
         raise HTTPException(status_code=403, detail="Not allowed")
 
-    # DB cascades handle related registrations/volunteers automatically
+    db.query(models.Payment).filter(models.Payment.event_id == event_id).delete()
+    db.query(models.VolunteerWhitelist).filter(models.VolunteerWhitelist.event_id == event_id).delete()
+    db.query(models.Registration).filter(models.Registration.event_id == event_id).delete()
     db.delete(event)
     db.commit()
 
@@ -713,7 +722,7 @@ def register_event(event_id: int, db: Session = Depends(get_db), current_user=De
         upload_result = cloudinary.uploader.upload(
             img_byte_arr,
             public_id=f"{qr_token}",
-            folder="campusiq/qr_codes"
+            folder="collegebuddy/qr_codes"
         )
         qr_image_url = upload_result["secure_url"]
     else:
@@ -756,7 +765,7 @@ def get_my_tickets(db: Session = Depends(get_db), user=Depends(get_current_user)
                 "event_end_date": event.event_end_date.isoformat() if event.event_end_date else None,
                 "event_poster": event.poster,
                 "qr_code": reg.qr_code,
-                "qr_image": cloudinary.utils.cloudinary_url(f"campusiq/qr_codes/{reg.qr_code}")[0] if os.getenv("CLOUDINARY_URL") else f"/qr_codes/{reg.qr_code}.png",
+                "qr_image": cloudinary.utils.cloudinary_url(f"collegebuddy/qr_codes/{reg.qr_code}")[0] if os.getenv("CLOUDINARY_URL") else f"/qr_codes/{reg.qr_code}.png",
                 "checked_in": reg.checked_in,
                 "booked_at": reg.created_at.isoformat() if reg.created_at else None,
                 "payment_id": payment_id
@@ -1184,7 +1193,7 @@ def verify_payment(data: VerifyPaymentRequest, db: Session = Depends(get_db), cu
         upload_result = cloudinary.uploader.upload(
             img_byte_arr,
             public_id=f"{qr_token}",
-            folder="campusiq/qr_codes"
+            folder="collegebuddy/qr_codes"
         )
         qr_image_url = upload_result["secure_url"]
     else:
@@ -1241,7 +1250,7 @@ def download_receipt(payment_id: str, db: Session = Depends(get_db)):
     
     story = []
     
-    story.append(Paragraph("CampusIQ — Payment Receipt", title_style))
+    story.append(Paragraph("CollegeBuddy — Payment Receipt", title_style))
     story.append(Spacer(1, 10))
     
     data = [
@@ -1274,7 +1283,7 @@ def download_receipt(payment_id: str, db: Session = Depends(get_db)):
     buffer.seek(0)
     
     headers = {
-        'Content-Disposition': f'attachment; filename="CampusIQ_Receipt_{payment_id}.pdf"'
+        'Content-Disposition': f'attachment; filename="CollegeBuddy_Receipt_{payment_id}.pdf"'
     }
     return StreamingResponse(buffer, media_type='application/pdf', headers=headers)
 

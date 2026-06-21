@@ -71,7 +71,7 @@ function Login() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-center mb-1">Welcome to CAMPUS_IQ</h1>
+        <h1 className="text-2xl font-bold text-center mb-1">Welcome to COLLEGE_BUDDY</h1>
         <p className="text-gray-500 text-sm text-center mb-6">Sign in to your account</p>
 
         <p className="text-sm font-medium mb-2 text-gray-700">Select your role</p>

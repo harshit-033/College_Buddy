@@ -74,7 +74,7 @@ function Register() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold mb-2 text-center">Create your CAMPUS_IQ account</h1>
+        <h1 className="text-2xl font-bold mb-2 text-center">Create your COLLEGE_BUDDY account</h1>
         <p className="text-gray-500 mb-6 text-sm">Sign up to discover, book, and host campus events.</p>
 
         <input

@@ -1,8 +1,8 @@
 # CollegeBuddy 🎓 - Smart Campus Event Management System
 
-CampusIQ is a premium, full-stack platform designed to revolutionize campus event management. It provides a seamless experience for students to discover events, hosts to manage them with AI-driven insights, and volunteers to verify attendance using a robust QR-based ticketing system.
+CollegeBuddy is a premium, full-stack platform designed to revolutionize campus event management. It provides a seamless experience for students to discover events, hosts to manage them with AI-driven insights, and volunteers to verify attendance using a robust QR-based ticketing system.
 
-![CampusIQ Banner](https://img.shields.io/badge/CampusIQ-Smart_Events-blue?style=for-the-badge)
+![CollegeBuddy Banner](https://img.shields.io/badge/CollegeBuddy-Smart_Events-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 - [Features](#-features)
@@ -64,7 +64,7 @@ CampusIQ is a premium, full-stack platform designed to revolutionize campus even
 
 ## 🏗️ Architecture
 
-![CampusIQ Architecture Diagram](docs/architecture.png)
+![CollegeBuddy Architecture Diagram](docs/architecture.png)
 
 The system follows a modern decoupled architecture:
 - **Frontend**: React-based Single Page Application (SPA) providing a responsive user interface.
@@ -77,12 +77,12 @@ The system follows a modern decoupled architecture:
 
 ## 💻 Local Setup
 
-Follow these steps to get CampusIQ running on your local machine.
+Follow these steps to get CollegeBuddy running on your local machine.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/harshit-033/Campus_IQ.git
-cd Campus_IQ
+git clone https://github.com/harshit-033/College_Buddy.git
+cd College_Buddy
 ```
 
 ### 2. Backend Setup
@@ -142,7 +142,7 @@ The app will be available at `http://localhost:5173`.
 
 ## 🧠 AI & Prediction
 
-CampusIQ uses a **Linear Regression** model to assist hosts in planning.
+CollegeBuddy uses a **Linear Regression** model to assist hosts in planning.
 - **Inputs**: Participant limit, Event fee, Total registrations.
 - **Output**: Predicted actual attendance.
 - **Goal**: Helps organizers optimize resources like seating, catering, and venue size.

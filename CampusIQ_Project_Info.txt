@@ -1,13 +1,13 @@
-# CAMPUSIQ PROJECT DOCUMENTATION
+# COLLEGEBUDDY PROJECT DOCUMENTATION
 
 Project Name:
-CampusIQ
+CollegeBuddy
 
 Project Type:
 Smart Campus Event Management System
 
 Goal:
-CampusIQ is a full-stack platform that allows students to discover campus events, hosts to create and manage events, and volunteers to scan QR-based tickets for attendance tracking. The system also includes AI-based event attendance prediction.
+CollegeBuddy is a full-stack platform that allows students to discover campus events, hosts to create and manage events, and volunteers to scan QR-based tickets for attendance tracking. The system also includes AI-based event attendance prediction.
 
 ---
 
@@ -77,7 +77,7 @@ AI Attendance Prediction Model
 
 ## Root Folder
 
-CampusIQ/
+CollegeBuddy/
 │
 ├── backend/
 │   ├── ai/
@@ -363,7 +363,7 @@ Admin panel
 
 ---
 
-CampusIQ helps colleges:
+CollegeBuddy helps colleges:
 
 * Manage campus events efficiently
 * Prevent ticket fraud

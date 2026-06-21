@@ -2,10 +2,10 @@ from docx import Document
 import os
 
 doc = Document()
-doc.add_heading('CampusIQ - Project Overview & Use Cases', 0)
+doc.add_heading('CollegeBuddy - Project Overview & Use Cases', 0)
 
 doc.add_heading('Project Overview', level=1)
-doc.add_paragraph('CampusIQ is a comprehensive, full-stack smart campus event management platform designed to revolutionize how events are discovered, managed, and executed within educational institutions. It streamlines the entire lifecycle of a campus event. It provides a seamless experience for students to find events, hosts to manage them with AI-driven insights, and volunteers to verify attendance using a robust QR-based smart ticketing system.')
+doc.add_paragraph('CollegeBuddy is a comprehensive, full-stack smart campus event management platform designed to revolutionize how events are discovered, managed, and executed within educational institutions. It streamlines the entire lifecycle of a campus event. It provides a seamless experience for students to find events, hosts to manage them with AI-driven insights, and volunteers to verify attendance using a robust QR-based smart ticketing system.')
 
 doc.add_heading('Technology Stack', level=1)
 doc.add_paragraph('Frontend: React 19 (Vite) with TailwindCSS for styling, React Router for navigation, Axios for API communication, and html5-qrcode for in-browser QR scanning.', style='List Bullet')
@@ -32,23 +32,23 @@ doc.add_paragraph('Instantly mark attendance and verify ticket validity in real 
 doc.add_paragraph('The system has built-in anti-fraud measures to prevent duplicate entries or invalid ticket usage.', style='List Bullet')
 
 doc.add_heading('AI & Predictive Analytics Integration', level=1)
-doc.add_paragraph('A standout feature of CampusIQ is its Machine Learning component. It uses a Linear Regression model to assist hosts in their logistical planning.')
+doc.add_paragraph('A standout feature of CollegeBuddy is its Machine Learning component. It uses a Linear Regression model to assist hosts in their logistical planning.')
 doc.add_paragraph('Inputs: The model analyzes the event\'s participant limit, event fee, and total registrations.', style='List Bullet')
 doc.add_paragraph('Output: It predicts the actual expected attendance.', style='List Bullet')
 doc.add_paragraph('Goal: This helps organizers optimize resources like seating arrangements, catering, and venue size, reducing waste and saving money.', style='List Bullet')
 
 doc.add_heading('Primary Use Cases', level=1)
 doc.add_heading('1. Streamlining Event Discovery and Ticketing (For the Student Body)', level=2)
-doc.add_paragraph('Currently, students might find out about events through scattered WhatsApp groups, emails, or bulletin boards. CampusIQ centralizes this. Students log in, view all happening activities, register frictionlessly, and get an organized digital QR ticket—eliminating the need for physical tickets or manual list-checking.')
+doc.add_paragraph('Currently, students might find out about events through scattered WhatsApp groups, emails, or bulletin boards. CollegeBuddy centralizes this. Students log in, view all happening activities, register frictionlessly, and get an organized digital QR ticket—eliminating the need for physical tickets or manual list-checking.')
 
 doc.add_heading('2. Efficient Event Logistics & Resource Optimization (For College Administrations & Clubs)', level=2)
-doc.add_paragraph('Organizing campus fests or workshops often results in over-ordering food or booking overly large halls because of unpredictable turnout. By using CampusIQ’s AI attendance prediction, organizers get a realistic number of expected attendees, allowing them to allocate budgets efficiently.')
+doc.add_paragraph('Organizing campus fests or workshops often results in over-ordering food or booking overly large halls because of unpredictable turnout. By using CollegeBuddy’s AI attendance prediction, organizers get a realistic number of expected attendees, allowing them to allocate budgets efficiently.')
 
 doc.add_heading('3. Fraud-Proof Check-ins (For Event Security & Volunteers)', level=2)
-doc.add_paragraph('Manual check-ins (e.g., using printed spreadsheets) are slow and prone to proxy entries. CampusIQ enables volunteers to stand at the gates with just their smartphones, scanning QR codes via the web scanner. The system instantly verifies if the ticket is valid and legitimate, checking the attendee in within seconds.')
+doc.add_paragraph('Manual check-ins (e.g., using printed spreadsheets) are slow and prone to proxy entries. CollegeBuddy enables volunteers to stand at the gates with just their smartphones, scanning QR codes via the web scanner. The system instantly verifies if the ticket is valid and legitimate, checking the attendee in within seconds.')
 
 doc.add_heading('4. Post-Event Analytics and Records (For Institutional Tracking)', level=2)
-doc.add_paragraph('Colleges often need event data for accreditation or institutional reports. CampusIQ provides historical data, showing exactly how many students registered versus how many actually attended, generating actionable insights for future event planning.')
+doc.add_paragraph('Colleges often need event data for accreditation or institutional reports. CollegeBuddy provides historical data, showing exactly how many students registered versus how many actually attended, generating actionable insights for future event planning.')
 
 doc.add_heading('Future Scope & Roadmap', level=1)
 doc.add_paragraph('Automated Certificates: Instantly generating and emailing participation certificates (PDFs) to users marked as "attended".', style='List Bullet')
@@ -57,6 +57,6 @@ doc.add_paragraph('Push Notifications/Emails: Sending real-time reminders to stu
 doc.add_paragraph('Multi-Campus Support: Scaling the system to support multiple institutions in a SaaS-like model.', style='List Bullet')
 
 # Save in the same folder where the user is working
-output_path = r'c:\Users\harsh\OneDrive\Desktop\CampusIQ\CampusIQ_Project_Information.docx'
+output_path = r'c:\Users\harsh\OneDrive\Desktop\CollegeBuddy\CollegeBuddy_Project_Information.docx'
 doc.save(output_path)
 print(f"Word document saved successfully at {output_path}")

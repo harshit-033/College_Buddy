@@ -1,6 +1,6 @@
 ╔══════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                ║
-║                     CAMPUSIQ — COMPLETE PROJECT DETAILS                        ║
+║                     COLLEGEBUDDY — COMPLETE PROJECT DETAILS                        ║
 ║                      Smart Campus Management System                            ║
 ║                                                                                ║
 ╚══════════════════════════════════════════════════════════════════════════════════╝
@@ -43,7 +43,7 @@ Version: 2.0 (Comprehensive Edition)
   1. PROJECT OVERVIEW
 ════════════════════════════════════════════════════════════════════════════════════
 
-Project Name    : CampusIQ — Smart Campus Management System
+Project Name    : CollegeBuddy — Smart Campus Management System
 Type            : Full-Stack Web Application
 Purpose         : A comprehensive campus management platform designed to
                   streamline academic operations, event management, attendance
@@ -932,7 +932,7 @@ Design Techniques Used:
 BACKEND DEPLOYMENT (Render):
   • Platform: Render (Web Service)
   • Configuration File: render.yaml
-  • Service Name: campusiq-backend
+  • Service Name: collegebuddy-backend
   • Runtime: Python 3.11.0
   • WSGI Server: Gunicorn
   • Build Command:
@@ -1088,9 +1088,9 @@ LONG-TERM:
   • generate_word_doc.py       — Python script to generate project documentation
                                  as a Word document (.docx) using python-docx
 
-  • CampusIQ_Project_Info.txt  — Previous version of project information file
+  • CollegeBuddy_Project_Info.txt  — Previous version of project information file
 
-  • CampusIQ_Project_Information.docx — Word document with project details
+  • CollegeBuddy_Project_Information.docx — Word document with project details
 
   • render.yaml                — Render deployment configuration
 
@@ -1103,7 +1103,7 @@ LONG-TERM:
 ║                                                                                ║
 ║                          END OF PROJECT DOCUMENTATION                          ║
 ║                                                                                ║
-║  Project: CampusIQ — Smart Campus Management System                            ║
+║  Project: CollegeBuddy — Smart Campus Management System                            ║
 ║  Total Backend Dependencies: 8 packages                                        ║
 ║  Total Frontend Dependencies: 8 production + 7 dev packages                    ║
 ║  Total Database Models: 6                                                      ║

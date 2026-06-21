@@ -52,7 +52,7 @@ function StudentVolunteer() {
           key: payData.key_id,
           amount: payData.amount * 100,
           currency: "INR",
-          name: "CampusIQ",
+          name: "CollegeBuddy",
           description: `Volunteer Fee for ${eventTitle}`,
           order_id: payData.order_id,
           handler: async (response) => {

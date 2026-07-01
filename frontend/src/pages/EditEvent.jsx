@@ -5,6 +5,7 @@ import { getToken } from "../utils/auth"
 import Sidebar from "../components/Sidebar"
 import EventForm from "../components/EventForm"
 import { toast } from "react-hot-toast"
+import { Pencil, ArrowLeft } from "lucide-react"
 
 function EditEvent() {
   const { id } = useParams()
@@ -21,7 +22,10 @@ function EditEvent() {
     fee: "",
     volunteerFee: "",
     limit: "",
-    maxVolunteers: ""
+    maxVolunteers: "",
+    eventType: "",
+    criteria: "",
+    prizes: ""
   })
 
   const handleChange = (field, value) => {
@@ -45,7 +49,10 @@ function EditEvent() {
           fee: e.fee ?? "",
           volunteerFee: e.volunteer_fee ?? "",
           limit: e.participant_limit ?? "",
-          maxVolunteers: e.max_volunteers ?? ""
+          maxVolunteers: e.max_volunteers ?? "",
+          eventType: e.event_type || "",
+          criteria: e.criteria || "",
+          prizes: e.prizes || ""
         })
       })
       .catch(err => {
@@ -69,12 +76,13 @@ function EditEvent() {
     if (values.date) formData.append("event_date", values.date)
     if (values.endDate) formData.append("event_end_date", values.endDate)
     if (values.maxVolunteers) formData.append("max_volunteers", Number(values.maxVolunteers))
+    if (values.eventType) formData.append("event_type", values.eventType)
+    if (values.criteria !== undefined) formData.append("criteria", values.criteria)
+    if (values.prizes !== undefined) formData.append("prizes", values.prizes)
 
     try {
       await API.put(`/edit-event/${id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       })
       toast.success("Event updated successfully!")
       navigate("/manage-events")
@@ -89,24 +97,43 @@ function EditEvent() {
     <div className="flex">
       <Sidebar />
 
-      <div className="flex-1 p-10 bg-gray-50 min-h-screen">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Edit Event</h1>
-          <p className="text-gray-500 mt-1">Update the details of your event</p>
+      <div className="flex-1 min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-10 py-8">
+          <button
+            onClick={() => navigate("/manage-events")}
+            className="flex items-center gap-2 text-blue-100 hover:text-white mb-4 text-sm transition-colors"
+          >
+            <ArrowLeft size={15} /> Back to Manage Events
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <Pencil size={18} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Edit Event</h1>
+              <p className="text-blue-100 mt-0.5">Update your event details</p>
+            </div>
+          </div>
         </div>
 
-        {fetching ? (
-          <p className="text-gray-400">Loading event details...</p>
-        ) : (
-          <EventForm
-            values={values}
-            onChange={handleChange}
-            onPosterChange={null}
-            onSubmit={updateEvent}
-            submitLabel="Update Event"
-            loading={loading}
-          />
-        )}
+        <div className="p-10">
+          {fetching ? (
+            <div className="flex items-center gap-3 text-gray-400">
+              <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+              Loading event details...
+            </div>
+          ) : (
+            <EventForm
+              values={values}
+              onChange={handleChange}
+              onPosterChange={null}
+              onSubmit={updateEvent}
+              submitLabel="💾 Save Changes"
+              loading={loading}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

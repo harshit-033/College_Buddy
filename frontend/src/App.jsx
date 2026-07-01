@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast"
 import Register from "./pages/Register"
 import Login from "./pages/Login"
 import Events from "./pages/Events"
+import EventDetail from "./pages/EventDetail"
 import Scanner from "./pages/Scanner"
 import ManageEvents from "./pages/ManageEvents"
 import HostDashboard from "./pages/HostDashboard"
@@ -31,6 +32,11 @@ function App() {
         <Route path="/events" element={
           <ProtectedRoute role="student">
             <Events />
+          </ProtectedRoute>
+        } />
+        <Route path="/events/:id" element={
+          <ProtectedRoute role="student">
+            <EventDetail />
           </ProtectedRoute>
         } />
         <Route path="/my-tickets" element={

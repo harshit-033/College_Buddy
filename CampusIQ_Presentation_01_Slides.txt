@@ -1,0 +1,358 @@
+================================================================================
+                    CAMPUSIQ (COLLEGEBUDDY) — PRESENTATION 01
+               SMART CAMPUS EVENT MANAGEMENT & PREDICTIVE SYSTEM
+                     PPT 01 EVALUATION (10-MINUTE REVIEW)
+================================================================================
+
+INSTITUTION : GL Bajaj Institute of Technology and Management
+PROJECT DOMAIN: Full-Stack Web Technologies, Distributed Systems & Machine Learning
+DOCUMENT TYPE : Complete Presentation Text, Slide Scripts & Speaker Notes
+TARGET TIME   : 10 Minutes Total (Approx. 1 minute per slide)
+
+TEAM MEMBERS:
+  1. Harshit Kumar
+  2. Dhruv Soni
+  3. Devendra Pratap Singh
+  4. Devbrat
+
+================================================================================
+SLIDE 1: TITLE SLIDE
+================================================================================
+[Visual / Layout Suggestion]:
+  - Center-aligned clean layout with institutional header.
+  - Project Logo on top or left.
+  - High-impact title typography.
+
+SLIDE CONTENT:
+  • PROJECT TITLE: CampusIQ (CollegeBuddy)
+  • SUBTITLE: Smart Campus Event Management, Anti-Fraud Ticketing & Predictive Intelligence System
+  • DOMAIN: Full-Stack Web Development, Applied Machine Learning & Cloud Integration
+  • INSTITUTION: GL Bajaj Institute of Technology and Management
+  • PRESENTED BY:
+      - Harshit Kumar
+      - Dhruv Soni
+      - Devendra Pratap Singh
+      - Devbrat
+
+SPEAKER NOTES (Time: 0:00 - 0:45):
+  "Good morning respected members of the evaluation panel. Today, our team—Harshit,
+  Dhruv, Devendra, and Devbrat from GL Bajaj Institute of Technology and
+  Management—is proud to present our project: CampusIQ (internally CollegeBuddy).
+  CampusIQ is a comprehensive, production-grade event management and intelligence
+  platform designed to solve longstanding operational, security, and logistical
+  bottlenecks across college campuses. Over the next 10 minutes, we will walk you
+  through our problem statement, literature survey, system architecture, work
+  distribution, current project status, and our 9-week development roadmap."
+
+
+================================================================================
+SLIDE 2: INTRODUCTION & OBJECTIVES
+================================================================================
+[Visual / Layout Suggestion]:
+  - Two-column split: Left side shows "The Campus Challenge", Right side shows "Core Objectives" with checkmark icons.
+
+SLIDE CONTENT:
+  • BACKGROUND & PROBLEM STATEMENT:
+      - University fests, hackathons, and symposiums involve thousands of participants.
+      - Fragmented announcements across WhatsApp, unofficial chats, and bulletin boards.
+      - Gate check-ins rely on chaotic paper lists, creating long queues and proxy entries.
+      - Organizers suffer severe budget waste from unpredictable student turnout.
+  • CORE OBJECTIVES:
+      - Unified Discovery: Centralized, filterable catalog for all campus activities.
+      - Fraud-Proof Ticketing: Automated issuance of single-use, cryptographically verified QR passes.
+      - Zero-Install Gate Scanner: In-browser camera QR scanner (html5-qrcode) for instant check-in.
+      - AI Turnout Forecasting: Scikit-Learn regression model to predict actual attendance.
+      - Integrated Commerce & Governance: Secure Razorpay payment pipeline and host volunteer whitelisting.
+
+SPEAKER NOTES (Time: 0:45 - 2:00):
+  "In any college environment like ours, organizing events involves huge logistical
+  overhead. Announcements are scattered across unofficial WhatsApp groups, paper forms
+  lead to data loss, and physical gate check-ins allow proxy attendance. Most importantly,
+  organizers never know how many students will actually turn up, leading to wasted
+  catering budgets or overcrowded auditoriums.
+  Our objective with CampusIQ is to provide a single unified ecosystem: students can
+  discover events and book digital passes; student volunteers scan tickets in real
+  time using their smartphone web cameras; and organizers gain AI-driven turnout
+  predictions to plan seating and catering scientifically."
+
+
+================================================================================
+SLIDE 3: LITERATURE SURVEY & EXISTING SYSTEMS
+================================================================================
+[Visual / Layout Suggestion]:
+  - Comparison table highlighting the critical shortcomings of current solutions.
+
+SLIDE CONTENT:
+  • COMPARATIVE ANALYSIS OF EXISTING SYSTEMS:
+    ┌───────────────────────┬─────────────────────────┬───────────────────────────────┐
+    │ Existing Solution     │ Working Mechanism       │ Identified Shortcomings & Gaps│
+    ├───────────────────────┼─────────────────────────┼───────────────────────────────┤
+    │ Google Forms + Spread │ Manual link sharing and │ Zero fraud control; no ticket │
+    │ sheets & WhatsApp     │ static form entry       │ generation; manual gate checks│
+    ├───────────────────────┼─────────────────────────┼───────────────────────────────┤
+    │ Commercial Ticketing  │ Public web ticketing    │ High commission fees; no      │
+    │ (Eventbrite, Meetup)  │ for commercial events   │ student ID/roll-no validation │
+    ├───────────────────────┼─────────────────────────┼───────────────────────────────┤
+    │ Traditional Campus    │ Bulky administrative    │ Poor UX; lacks mobile camera  │
+    │ ERP Portals           │ web portals             │ QR scanner; no AI prediction  │
+    ├───────────────────────┼─────────────────────────┼───────────────────────────────┤
+    │ Physical Paper Passes │ Printed passes and sign │ Easily forged or transferred; │
+    │ & Badge Slips         │ -in desk registers      │ slow validation; data loss    │
+    └───────────────────────┴─────────────────────────┴───────────────────────────────┘
+
+SPEAKER NOTES (Time: 2:00 - 3:15):
+  "During our literature survey, we categorized existing mechanisms into four groups.
+  First, Google Forms with WhatsApp: widely used, but lacks ticketing, security, or
+  instant verification. Second, commercial platforms like Eventbrite: they are built
+  for commercial profits, charge per-ticket fees, and cannot capture college-specific
+  academic details like roll numbers or semester branches. Third, existing college ERPs:
+  they are rigid, non-responsive on mobile, and lack dynamic camera scanning. Finally,
+  paper passes, which are prone to proxy entries and forgery. This literature survey
+  demonstrated a clear need for a dedicated, institutional event management platform."
+
+
+================================================================================
+SLIDE 4: CURRENT SOLUTIONS ANALYSIS & WHY CAMPUSIQ IS NEEDED
+================================================================================
+[Visual / Layout Suggestion]:
+  - Three visual callout cards: 1. Turnout Crisis, 2. The Proxy Loophole, 3. The CampusIQ Advantage.
+
+SLIDE CONTENT:
+  • THE TURNOUT UNCERTAINTY CRISIS:
+      - For free college events, 30% to 50% of registered students fail to show up.
+      - Organizers over-order catering and over-book auditoriums, causing severe budget waste.
+      - CampusIQ solves this by feeding event fee, venue limit, and registrations into an ML model.
+  • GATE BOTTLENECKS & TICKET FRAUD:
+      - Manual paper cross-referencing takes 30–45 seconds per attendee.
+      - Screenshots of free passes are shared with unregistered friends.
+      - CampusIQ checks in attendees in under 1.5 seconds and invalidates used passes atomically.
+  • KEY DIFFERENTIATORS OF CAMPUSIQ:
+      - Academic-Aware RBAC: Captures college, course, department, semester, and roll number.
+      - Zero-Install Web Camera Scanner: Volunteers require no app downloads—it runs in the browser.
+      - Cryptographic Security: Single-use 128-bit UUID tokens stored as TICKET:<token>.
+      - Integrated Host Volunteer Management: Hosts review and whitelist volunteer applications.
+
+SPEAKER NOTES (Time: 3:15 - 4:15):
+  "Why is a new solution necessary? Primarily because of two major pain points:
+  First, the 'no-show' phenomenon. When registration is free, students register
+  casually and don't show up, leaving organizers with empty seats and wasted food.
+  CampusIQ uses a machine learning model to estimate true turnout before the event begins.
+  Second, security at the gates. With manual lists, volunteers spend 45 seconds per
+  student, and students easily share pass screenshots. CampusIQ reduces check-in to
+  1.5 seconds via web camera scanning, and marks the pass as used instantly in the
+  database, completely blocking proxy attendance."
+
+
+================================================================================
+SLIDE 5: REQUIREMENTS ANALYSIS (HARDWARE & SOFTWARE TOOLS)
+================================================================================
+[Visual / Layout Suggestion]:
+  - Two distinct panels: Left side for Software Stack, Right side for Hardware & Infrastructure.
+
+SLIDE CONTENT:
+  • SOFTWARE TOOLS & STACK:
+      - Client Layer: React 19 (Vite bundler), TailwindCSS, Lucide-React, React Router DOM v7
+      - Scanner Engine: html5-qrcode (hardware-accelerated in-browser video barcode decoder)
+      - Application Server: FastAPI (Python 3.10+) running on Uvicorn ASGI server
+      - Database & ORM: PostgreSQL (Production) / SQLite (Development), SQLAlchemy 2.0 ORM
+      - Security & Cryptography: Passlib (Bcrypt hashing), Python-JOSE (HS256 JWT tokens)
+      - Machine Learning: Scikit-Learn (Linear Regression), Pandas, Joblib serialization
+      - Cloud Integrations: Razorpay SDK (Payments), Cloudinary API (Poster & QR CDN)
+  • HARDWARE & ENVIRONMENT REQUIREMENTS:
+      - Development Server: 64-bit multi-core CPU (Intel/AMD), 8 GB RAM, 20 GB storage
+      - Host & Student Devices: Any standard laptop, PC, tablet, or smartphone (Chrome, Safari, Edge)
+      - Volunteer Scanner Devices: Any basic smartphone with a functional camera & browser
+      - Production Cloud Infrastructure: Render PaaS (Linux container) + Managed PostgreSQL
+
+SPEAKER NOTES (Time: 4:15 - 5:15):
+  "Moving to our requirements analysis: On the software side, we selected FastAPI for
+  our backend due to its asynchronous performance, automatic OpenAPI documentation,
+  and native integration with Python's data science ecosystem. We use SQLAlchemy ORM
+  with PostgreSQL. On the frontend, React 19 bundled with Vite and styled with
+  TailwindCSS provides a responsive UI. We utilize html5-qrcode for browser-based
+  camera scanning, Scikit-Learn for turnout prediction, and Razorpay for payment
+  processing.
+  On the hardware side, the architecture is lightweight. No specialized barcode
+  hardware is needed; any standard smartphone carried by student volunteers acts as
+  a high-speed ticket scanner."
+
+
+================================================================================
+SLIDE 6: SYSTEM DESIGN & ARCHITECTURE
+================================================================================
+[Visual / Layout Suggestion]:
+  - 3-tier architectural diagram showing Frontend, Backend API, Database, ML Engine, and Cloud APIs.
+
+SLIDE CONTENT:
+  • 3-TIER DECOUPLED ARCHITECTURE:
+    ┌────────────────────────────────────────────────────────┐
+    │                   REACT 19 FRONTEND                    │
+    │   [Student Portal]   [Host Dashboard]   [QR Scanner]   │
+    └──────────────────────────┬─────────────────────────────┘
+                               │ REST API (JSON / Bearer JWT)
+    ┌──────────────────────────▼─────────────────────────────┐
+    │                   FASTAPI BACKEND                      │
+    │  [Auth & RBAC]  [Event Engine]  [Anti-Fraud Scanner]   │
+    │  [Razorpay Verification]        [AI Prediction Engine] │
+    └────────────┬──────────────────┬─────────────────┬──────┘
+                 │                  │                 │
+        ┌────────▼───────┐  ┌───────▼───────┐  ┌──────▼──────┐
+        │  PostgreSQL /  │  │  Cloudinary   │  │ Scikit-Learn│
+        │  SQLAlchemy    │  │  Media CDN    │  │ Linear Reg. │
+        └────────────────┘  └───────────────┘  └─────────────┘
+
+  • CORE OPERATIONAL WORKFLOWS:
+      1. Booking Workflow: Student registers -> Razorpay verification (if paid) -> Unique UUID generated -> QR code rendered & saved to Cloudinary.
+      2. Gate Check-in: Volunteer scans pass -> Backend checks ticket validity and checked_in == False -> Marks checked_in = True -> Re-scans trigger immediate fraud alert.
+      3. AI Analytics: Host views analytics -> Feature vector [limit, fee, registrations] fed into model -> Predicted attendance displayed.
+
+SPEAKER NOTES (Time: 5:15 - 6:45):
+  "This diagram illustrates our end-to-end system design. The client layer is a React SPA
+  communicating via REST and Bearer JWTs with our FastAPI server.
+  The workflow operates in three stages:
+  First, the Booking Workflow: When a student books a ticket, the system validates event
+  capacity, handles Razorpay payment verification if the event is paid, and mints a
+  single-use QR pass with a unique UUID.
+  Second, the Gate Check-in Workflow: At the event hall, whitelisted volunteers open the
+  in-browser scanner. The backend performs an atomic check. If valid, the ticket is
+  marked as checked in. If someone attempts to re-use the same ticket screenshot,
+  the system instantly flashes a red fraud warning.
+  Third, the Prediction Workflow: Our trained Linear Regression model evaluates registration
+  velocity, ticket fee, and participant limit to output forecasted attendance for the host."
+
+
+================================================================================
+SLIDE 7: WORK DISTRIBUTION
+================================================================================
+[Visual / Layout Suggestion]:
+  - Structured 4-row responsibility matrix detailing each member's contributions.
+
+SLIDE CONTENT:
+  • TEAM RESPONSIBILITY MATRIX (GL BAJAJ TEAM):
+    ┌────────────────────────┬────────────────────────────────────────────────────────┐
+    │ Team Member            │ Key Modules & Technical Responsibilities               │
+    ├────────────────────────┼────────────────────────────────────────────────────────┤
+    │ Harshit Kumar          │ System Architecture, FastAPI Backend Core, SQLAlchemy  │
+    │                        │ Database Models, JWT Auth, Security & API Orchestration│
+    ├────────────────────────┼────────────────────────────────────────────────────────┤
+    │ Dhruv Soni             │ Frontend Development, React 19 UI, TailwindCSS Styling,│
+    │                        │ Student Discovery Feed, Host Dashboard & Navigation    │
+    ├────────────────────────┼────────────────────────────────────────────────────────┤
+    │ Devendra Pratap Singh  │ QR Ticketing Engine, Camera Scanner Integration        │
+    │                        │ (html5-qrcode), Anti-Fraud Validation & Check-in Logic │
+    ├────────────────────────┼────────────────────────────────────────────────────────┤
+    │ Devbrat                │ AI/ML Attendance Prediction Model (Scikit-Learn),      │
+    │                        │ Razorpay Payment Gateway, Cloudinary CDN & Test Suites │
+    └────────────────────────┴────────────────────────────────────────────────────────┘
+
+SPEAKER NOTES (Time: 6:45 - 7:45):
+  "Our project work was divided across four specialized technical areas:
+  Harshit Kumar spearheaded backend architecture, FastAPI endpoints, database schema
+  design, and JWT security.
+  Dhruv Soni led frontend engineering, developing responsive React 19 pages, TailwindCSS
+  components, and student/host dashboards.
+  Devendra Pratap Singh engineered the QR generation pipeline, html5-qrcode camera
+  integration, and the anti-fraud check-in verification logic.
+  Devbrat trained the Scikit-Learn attendance prediction model, integrated Razorpay
+  payment signatures, configured Cloudinary media pipelines, and structured test suites."
+
+
+================================================================================
+SLIDE 8: CURRENT PROJECT STATUS
+================================================================================
+[Visual / Layout Suggestion]:
+  - Split status board: Left side shows "Completed Core Modules" (in Green), Right side shows "In Progress / Testing" (in Amber).
+
+SLIDE CONTENT:
+  • OVERALL STATUS: Core Features Fully Functional — Some Features Under Development & Deployment Testing
+  • COMPLETED & VERIFIED MODULES:
+      [x] Multi-Role User Authentication (JWT tokens, Bcrypt password encryption)
+      [x] Academic & Host Profile Management (Roll numbers, departments, org details)
+      [x] Complete Event Lifecycle (Creation, poster upload, editing, deletion)
+      [x] Smart QR Ticketing System (Dynamic generation, wallet display, PNG export)
+      [x] In-Browser Volunteer Gate Scanner (html5-qrcode, audio beeps, anti-fraud alerts)
+      [x] Volunteer Application & Whitelist Management (Host review & approvals)
+      [x] Razorpay Payment Gateway (Order creation & HMAC SHA-256 signature verification)
+      [x] AI Attendance Prediction Engine (Scikit-Learn regression loaded in API)
+  • FEATURES CURRENTLY UNDER DEVELOPMENT & TESTING:
+      [~] Automated Participation Certificate Generator (Instant PDF delivery on check-in)
+      [~] Cloud Deployment Testing (Render PaaS + Managed PostgreSQL + Cloudinary CDN)
+      [~] Cross-Device Mobile Camera Optimization (Autofocus tuning under varying venue lighting)
+
+SPEAKER NOTES (Time: 7:45 - 8:45):
+  "Regarding our current status: All core modules are implemented and verified in our
+  development environment. Authentication, event management, QR generation, volunteer
+  scanning, Razorpay payments, and AI attendance predictions are fully operational.
+  As per our development plan, we are currently in the deployment testing phase. We are
+  rigorously testing our PostgreSQL migrations and Cloudinary CDN connectivity on
+  Render cloud servers. Concurrently, we are developing the automated PDF participation
+  certificate generator and fine-tuning the camera scanner for low-light venue environments."
+
+
+================================================================================
+SLIDE 9: 9-WEEK GANTT CHART & DEVELOPMENT TIMELINE
+================================================================================
+[Visual / Layout Suggestion]:
+  - 9-week horizontal bar chart highlighting milestones across all 4 project phases.
+
+SLIDE CONTENT:
+  • 9-WEEK PROJECT TIMELINE & MILESTONES:
+    ┌───────────────────────────┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
+    │ Task / Milestone          │W1 │W2 │W3 │W4 │W5 │W6 │W7 │W8 │W9 │
+    ├───────────────────────────┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+    │ Problem Study & Planning  │███│   │   │   │   │   │   │   │   │
+    │ Requirements & DB Schema  │   │███│   │   │   │   │   │   │   │
+    │ FastAPI Backend & JWT Auth│   │   │███│███│   │   │   │   │   │
+    │ React 19 Frontend & Pages │   │   │   │███│███│   │   │   │   │
+    │ QR Engine & Web Scanner   │   │   │   │   │███│███│   │   │   │
+    │ AI Prediction & Payments  │   │   │   │   │   │███│███│   │   │
+    │ Deployment Testing (NOW)  │   │   │   │   │   │   │███│███│   │
+    │ Certificates & Final PPT  │   │   │   │   │   │   │   │   │███│
+    └───────────────────────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┘
+
+  • PHASE BREAKDOWN:
+      - Weeks 1–2: Literature survey, feasibility analysis, ER modeling, and system design.
+      - Weeks 3–4: Core backend development, REST endpoints, database migrations, and auth.
+      - Weeks 5–6: Frontend UI, QR ticketing engine, html5-qrcode scanner, and volunteer workflows.
+      - Weeks 7–8: Machine Learning model integration, Razorpay verification, and deployment testing.
+      - Week 9: Automated certificate generator finalization, final benchmarking, and documentation.
+
+SPEAKER NOTES (Time: 8:45 - 9:30):
+  "Here is our structured 9-week Gantt chart. We divided the project into four distinct
+  phases. Weeks 1 and 2 covered research, system design, and database schema creation.
+  Weeks 3 and 4 were dedicated to FastAPI backend routes and authentication. Weeks 5 and 6
+  focused on React frontend dashboards, the QR ticketing pipeline, and camera scanner
+  integration. During Weeks 7 and 8, we integrated the ML prediction model and Razorpay,
+  and began live deployment testing. We are currently in Week 8, concluding cloud testing,
+  and will finalize automated certificates and project documentation in Week 9."
+
+
+================================================================================
+SLIDE 10: CONCLUSION & NEXT STEPS (Q&A)
+================================================================================
+[Visual / Layout Suggestion]:
+  - Summary checkmarks on the left, forward-looking roadmap on the right, bold Q&A invitation at bottom.
+
+SLIDE CONTENT:
+  • SUMMARY OF KEY ACHIEVEMENTS:
+      - Successfully designed and built CampusIQ to eliminate campus event disorganization.
+      - Established an anti-fraud QR ticketing pipeline with instant gate verification.
+      - Integrated applied Machine Learning to reduce resource and catering wastage.
+      - Streamlined volunteer workflows with an in-browser scanner and host whitelisting.
+  • IMMEDIATE NEXT STEPS:
+      - Conclude cloud deployment and stress testing on Render and PostgreSQL.
+      - Complete automated participation certificate generation (PDF via email).
+      - Conduct a live trial run during an upcoming GL Bajaj college festival.
+  • THANK YOU!
+      - Open for Questions, Evaluation, and Suggestions from the Panel.
+
+SPEAKER NOTES (Time: 9:30 - 10:00):
+  "In conclusion, CampusIQ modernizes campus event operations from error-prone spreadsheets
+  to an intelligent, secure, and automated ecosystem. We have achieved our core milestones
+  and are now finalizing deployment testing and certificate generation.
+  Thank you for your time and attention. We now welcome questions and valuable feedback
+  from the panel."
+
+================================================================================
+                          END OF PRESENTATION SCRIPT
+================================================================================

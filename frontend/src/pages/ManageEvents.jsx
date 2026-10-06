@@ -4,7 +4,7 @@ import { getToken } from "../utils/auth"
 import { resolveUploadUrl } from "../utils/url"
 import Sidebar from "../components/Sidebar"
 import { useNavigate } from "react-router-dom"
-import { Calendar, MapPin, IndianRupee, Users, Pencil, Trash2, Plus, Trophy } from "lucide-react"
+import { Calendar, MapPin, IndianRupee, Users, Pencil, Trash2, Plus, Trophy, QrCode } from "lucide-react"
 import { toast } from "react-hot-toast"
 
 const EVENT_TYPE_STYLES = {
@@ -16,7 +16,7 @@ const EVENT_TYPE_STYLES = {
   Other:      { bg: "bg-gray-100",   text: "text-gray-600",   dot: "bg-gray-400"   },
 }
 
-function EventManageCard({ event, onEdit, onDelete, isDeleting }) {
+function EventManageCard({ event, onEdit, onDelete, onScan, isDeleting }) {
   const [imgError, setImgError] = useState(false)
   const typeStyle = EVENT_TYPE_STYLES[event.event_type]
 
@@ -75,21 +75,29 @@ function EventManageCard({ event, onEdit, onDelete, isDeleting }) {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
           <button
-            onClick={() => onEdit(event.id)}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-3 py-2 rounded-xl text-xs flex-1 justify-center font-semibold transition-all hover:shadow-md"
+            onClick={() => onScan(event.id)}
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white px-3 py-2.5 rounded-xl text-xs justify-center font-semibold transition-all hover:shadow-md"
           >
-            <Pencil size={12} /> Edit
+            <QrCode size={13} /> Open Scanner & Directory
           </button>
-          <button
-            onClick={() => onDelete(event.id)}
-            disabled={isDeleting}
-            className="flex items-center gap-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 hover:border-red-600 px-3 py-2 rounded-xl text-xs flex-1 justify-center font-semibold transition-all disabled:opacity-50"
-          >
-            <Trash2 size={12} />
-            {isDeleting ? "Deleting..." : "Delete"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onEdit(event.id)}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-3 py-2 rounded-xl text-xs flex-1 justify-center font-semibold transition-all hover:shadow-md"
+            >
+              <Pencil size={12} /> Edit
+            </button>
+            <button
+              onClick={() => onDelete(event.id)}
+              disabled={isDeleting}
+              className="flex items-center gap-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 hover:border-red-600 px-3 py-2 rounded-xl text-xs flex-1 justify-center font-semibold transition-all disabled:opacity-50"
+            >
+              <Trash2 size={12} />
+              {isDeleting ? "Deleting..." : "Delete"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -178,6 +186,7 @@ function ManageEvents() {
                   event={event}
                   onEdit={(id) => navigate(`/edit-event/${id}`)}
                   onDelete={deleteEvent}
+                  onScan={(id) => navigate(`/scanner/${id}`)}
                   isDeleting={deletingId === event.id}
                 />
               ))}

@@ -105,7 +105,7 @@ function Analytics() {
                       <th className="text-right px-6 py-3">Fees (Std / Vol)</th>
                       <th className="text-right px-6 py-3">Volunteers</th>
                       <th className="text-right px-6 py-3">Students</th>
-                      <th className="text-right px-6 py-3">Total Attended</th>
+                      <th className="text-right px-6 py-3">Attended / Registered</th>
                       <th className="text-right px-6 py-3">Revenue Collected</th>
                     </tr>
                   </thead>
@@ -120,7 +120,10 @@ function Analytics() {
                         </td>
                         <td className="px-6 py-4 text-right text-purple-600 font-medium">{event.volunteer_registrations}</td>
                         <td className="px-6 py-4 text-right text-indigo-600 font-medium">{event.student_registrations}</td>
-                        <td className="px-6 py-4 text-right text-gray-700 font-medium">{event.total_registrations}</td>
+                        <td className="px-6 py-4 text-right font-medium">
+                          <span className="text-emerald-600 font-semibold">{event.total_attended || 0}</span>
+                          <span className="text-gray-400"> / {event.total_registrations}</span>
+                        </td>
                         <td className="px-6 py-4 text-right font-bold text-emerald-600">
                           ₹{(event.actual_revenue || 0).toLocaleString()}
                         </td>

@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: campusiq_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: campusiq
+      POSTGRES_USER: campusiq_user
+      POSTGRES_PASSWORD: campusiq_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campusiq_user -d campusiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: campusiq_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://campusiq_user:campusiq_password@db:5432/campusiq
+      SECRET_KEY: ${SECRET_KEY:-campusiq_production_secret_key_change_me}
+      CLOUDINARY_URL: ${CLOUDINARY_URL:-}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/qr_codes:/app/qr_codes
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: campusiq_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:

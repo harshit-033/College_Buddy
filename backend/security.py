@@ -2,8 +2,9 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException
+import os
 
-SECRET_KEY = "collegebuddysecretkey"
+SECRET_KEY = os.getenv("SECRET_KEY", "collegebuddysecretkey")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

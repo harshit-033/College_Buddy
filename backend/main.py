@@ -83,6 +83,9 @@ def _ensure_sqlite_schema_compat():
                 "event_date": "DATETIME",
                 "event_end_date": "DATETIME",
                 "updated_at": "DATETIME",
+                "event_type": "TEXT",
+                "criteria": "TEXT",
+                "prizes": "TEXT",
             },
             "users": {
                 "profile_photo": "TEXT",
@@ -375,6 +378,9 @@ def create_event(
     event_date: str = Form(None),
     event_end_date: str = Form(None),
     poster: UploadFile = File(None),
+    event_type: Optional[str] = Form(None),
+    criteria: Optional[str] = Form(None),
+    prizes: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
@@ -442,7 +448,10 @@ def create_event(
         host_id=user["id"],
         poster=poster_filename,
         event_date=parsed_event_date,
-        event_end_date=parsed_event_end_date
+        event_end_date=parsed_event_end_date,
+        event_type=event_type,
+        criteria=criteria,
+        prizes=prizes
     )
 
     db.add(event)
@@ -468,7 +477,10 @@ def get_single_event(event_id: int, db: Session = Depends(get_db)):
         "poster": event.poster,
         "event_date": event.event_date.isoformat() if event.event_date else None,
         "event_end_date": event.event_end_date.isoformat() if event.event_end_date else None,
-        "host_id": event.host_id
+        "host_id": event.host_id,
+        "event_type": event.event_type,
+        "criteria": event.criteria,
+        "prizes": event.prizes
     }
 
 @app.get("/events")
@@ -521,6 +533,9 @@ def get_events(search: str = Query(None), db: Session = Depends(get_db), user=De
             "event_date": event.event_date.isoformat() if event.event_date else None,
             "event_end_date": event.event_end_date.isoformat() if event.event_end_date else None,
             "host_id": event.host_id,
+            "event_type": event.event_type,
+            "criteria": event.criteria,
+            "prizes": event.prizes,
             
             # Relation fields
             "has_ticket": reg is not None,
@@ -571,6 +586,9 @@ def edit_event(
     max_volunteers: Optional[int] = Form(None),
     event_date: str = Form(None),
     event_end_date: str = Form(None),
+    event_type: Optional[str] = Form(None),
+    criteria: Optional[str] = Form(None),
+    prizes: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
@@ -605,6 +623,9 @@ def edit_event(
     event.volunteer_fee = volunteer_fee
     event.participant_limit = participant_limit
     event.max_volunteers = max_volunteers
+    event.event_type = event_type
+    event.criteria = criteria
+    event.prizes = prizes
 
     if event_date:
         try:
@@ -813,6 +834,75 @@ def scan_ticket(qr_token: str, db: Session = Depends(get_db), user=Depends(get_c
         "event_title": event.title if event else "Unknown Event"
     }
 
+@app.get("/event/{event_id}/registrations")
+def get_event_registrations(event_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+        
+    is_host = event.host_id == user["id"]
+    is_volunteer = db.query(models.VolunteerWhitelist).filter(
+        models.VolunteerWhitelist.email == user["sub"],
+        models.VolunteerWhitelist.event_id == event_id,
+        models.VolunteerWhitelist.status == "approved"
+    ).first() is not None
+
+    if not (is_host or is_volunteer):
+        raise HTTPException(status_code=403, detail="Not authorized to view registrations for this event")
+
+    registrations = db.query(models.Registration).filter(
+        models.Registration.event_id == event_id
+    ).all()
+
+    results = []
+    for reg in registrations:
+        attendee = db.query(models.User).filter(models.User.id == reg.user_id).first()
+        results.append({
+            "id": reg.id,
+            "attendee_name": attendee.name if attendee else "Unknown",
+            "attendee_email": attendee.email if attendee else "Unknown",
+            "attendee_roll": attendee.roll_number if attendee else None,
+            "checked_in": reg.checked_in,
+            "checked_in_time": reg.updated_at.isoformat() if (reg.checked_in and reg.updated_at) else None
+        })
+
+    return results
+
+@app.post("/manually-checkin-ticket/{registration_id}")
+def manually_checkin_ticket(registration_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    registration = db.query(models.Registration).filter(
+        models.Registration.id == registration_id
+    ).first()
+
+    if not registration:
+        raise HTTPException(status_code=404, detail="Registration not found")
+
+    if registration.checked_in:
+        raise HTTPException(status_code=400, detail="Attendee is already checked in")
+
+    event = db.query(models.Event).filter(models.Event.id == registration.event_id).first()
+    
+    is_host = event.host_id == user["id"]
+    is_volunteer = db.query(models.VolunteerWhitelist).filter(
+        models.VolunteerWhitelist.email == user["sub"],
+        models.VolunteerWhitelist.event_id == registration.event_id,
+        models.VolunteerWhitelist.status == "approved"
+    ).first() is not None
+
+    if not (is_host or is_volunteer):
+        raise HTTPException(status_code=403, detail="You are not authorized to check in attendees for this event")
+
+    registration.checked_in = True
+    db.commit()
+
+    attendee = db.query(models.User).filter(models.User.id == registration.user_id).first()
+
+    return {
+        "message": f"Successfully checked in {attendee.name if attendee else 'Attendee'}!",
+        "attendee_name": attendee.name if attendee else "Unknown",
+        "event_title": event.title if event else "Unknown Event"
+    }
+
 # ─── VOLUNTEER WHITELIST ─────────────────────────────────────────────────
 
 @app.post("/student/apply-volunteer")
@@ -870,6 +960,14 @@ def get_student_volunteer_events(db: Session = Depends(get_db), user=Depends(get
                 models.Registration.event_id == event.id,
                 models.Registration.user_id == user["id"]
             ).first()
+            total_registered = db.query(models.Registration).filter(
+                models.Registration.event_id == event.id
+            ).count()
+            total_checkins = db.query(models.Registration).filter(
+                models.Registration.event_id == event.id,
+                models.Registration.checked_in == True
+            ).count()
+
             results.append({
                 "id": entry.id,
                 "event_id": event.id,
@@ -882,7 +980,9 @@ def get_student_volunteer_events(db: Session = Depends(get_db), user=Depends(get
                 "registered": reg is not None,
                 "qr_image": reg.qr_code if reg else None,
                 "volunteer_fee": event.volunteer_fee,
-                "fee": event.fee
+                "fee": event.fee,
+                "total_registered": total_registered,
+                "total_checkins": total_checkins
             })
     return results
 
@@ -1120,12 +1220,27 @@ def get_event_stats(event_id: int, db: Session = Depends(get_db), user=Depends(g
         models.Registration.checked_in == True
     ).count()
 
+    # Predict attendance using trained LinearRegression AI model
+    predicted_attendance = total_registrations
+    try:
+        import pandas as pd
+        df_pred = pd.DataFrame(
+            [[event.participant_limit or 100, event.fee or 0.0, total_registrations]],
+            columns=["participant_limit", "fee", "registrations"]
+        )
+        pred_val = model.predict(df_pred)[0]
+        max_bound = total_registrations if total_registrations > 0 else (event.participant_limit or 100)
+        predicted_attendance = max(0, min(int(round(pred_val)), max_bound))
+    except Exception as e:
+        predicted_attendance = int(total_registrations * 0.85)
+
     return {
         "event_id": event_id,
         "title": event.title,
         "total_registrations": total_registrations,
         "total_checkins": total_checkins,
-        "participant_limit": event.participant_limit
+        "participant_limit": event.participant_limit,
+        "predicted_attendance": predicted_attendance
     }
 
 # ─── PAYMENTS & RECEIPTS ─────────────────────────────────────────────────
@@ -1325,6 +1440,12 @@ def get_host_analytics(db: Session = Depends(get_db), user=Depends(get_current_u
             
         student_regs_count = len(registrations) - volunteer_regs_count
         
+        # Count checkins (attended)
+        total_checkins = db.query(models.Registration).filter(
+            models.Registration.event_id == event.id,
+            models.Registration.checked_in == True
+        ).count()
+        
         event_breakdown.append({
             "id": event.id,
             "title": event.title,
@@ -1334,6 +1455,7 @@ def get_host_analytics(db: Session = Depends(get_db), user=Depends(get_current_u
             "participant_limit": event.participant_limit,
             "actual_revenue": event_revenue,
             "total_registrations": len(registrations),
+            "total_attended": total_checkins,
             "student_registrations": student_regs_count,
             "volunteer_registrations": volunteer_regs_count,
             "potential_revenue": (event.fee * event.participant_limit) if event.participant_limit else 0.0

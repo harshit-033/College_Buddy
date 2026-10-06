@@ -53,6 +53,9 @@ class Event(Base):
     poster = Column(String)
     event_date = Column(DateTime, nullable=True)
     event_end_date = Column(DateTime, nullable=True)
+    event_type = Column(String, nullable=True)
+    criteria = Column(String, nullable=True)
+    prizes = Column(String, nullable=True)
     
     # Auditing
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -166,18 +166,34 @@ function StudentVolunteer() {
                 )}
 
                 {event.status === "approved" && event.registered && (
-                  <button
-                    onClick={() => navigate(`/scanner/${event.event_id}`)}
-                    className="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2"
-                  >
-                    <QrCode size={16} /> Open Scanner
-                  </button>
+                  <>
+                    <div className="mt-3 mb-4 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-500 font-medium">Check-in Progress</span>
+                        <span className="font-bold text-indigo-700">
+                          {event.total_checkins || 0} / {event.total_registered || 0} entered
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-indigo-600 h-full rounded-full transition-all duration-550"
+                          style={{ width: `${event.total_registered ? Math.min(100, Math.round((event.total_checkins / event.total_registered) * 100)) : 0}%` }}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => navigate(`/scanner/${event.event_id}`)}
+                      className="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 hover:shadow-md"
+                    >
+                      <QrCode size={16} /> Open Scanner & Directory
+                    </button>
+                  </>
                 )}
 
                 {event.status === "approved" && !event.registered && (
                   <button
                     onClick={() => handleVolunteerPayment(event.event_id, event.event_title)}
-                    className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 shadow-sm"
+                    className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 shadow-sm"
                   >
                     Pay Volunteer Fee (₹{event.volunteer_fee}) & Register
                   </button>

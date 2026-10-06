@@ -18,10 +18,30 @@ function MyTickets() {
       .then(res => setTickets(res.data))
       .catch(err => console.log(err))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   const upcoming = tickets.filter(t => !t.event_date || new Date(t.event_date) >= new Date())
   const past = tickets.filter(t => t.event_date && new Date(t.event_date) < new Date())
+
+  const handleDownloadReceipt = async (e, paymentId) => {
+    e.stopPropagation()
+    try {
+      const res = await API.get(`/download-receipt/${paymentId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "blob"
+      })
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }))
+      const link = document.createElement("a")
+      link.href = blobUrl
+      link.setAttribute("download", `receipt_${paymentId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(blobUrl)
+    } catch {
+      window.open(`${API_BASE}/download-receipt/${paymentId}?token=${encodeURIComponent(token)}`, "_blank")
+    }
+  }
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
@@ -108,10 +128,7 @@ function MyTickets() {
                             />
                             {ticket.payment_id && (
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.open(`${API_BASE}/download-receipt/${ticket.payment_id}`, "_blank");
-                                }}
+                                onClick={(e) => handleDownloadReceipt(e, ticket.payment_id)}
                                 className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold shadow-sm"
                               >
                                 <Download size={14} /> Download Receipt

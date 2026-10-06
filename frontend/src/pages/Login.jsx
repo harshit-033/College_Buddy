@@ -32,9 +32,7 @@ function Login() {
 
     setLoading(true)
     try {
-      const res = await API.post("/login", null, {
-        params: { email, password }
-      })
+      const res = await API.post("/login", { email, password })
 
       const token = res.data.access_token
       const payload = JSON.parse(atob(token.split(".")[1]))

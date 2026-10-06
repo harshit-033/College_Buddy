@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import API from "../api/api"
 import { getToken } from "../utils/auth"
 import { resolveUploadUrl } from "../utils/url"
@@ -111,15 +111,16 @@ function ManageEvents() {
   const navigate = useNavigate()
   const token = getToken()
 
-  const fetchEvents = () => {
-    setLoading(true)
+  const fetchEvents = useCallback(() => {
     API.get("/host/events", { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setEvents(res.data))
       .catch(err => console.log(err))
       .finally(() => setLoading(false))
-  }
+  }, [token])
 
-  useEffect(() => { fetchEvents() }, [])
+  useEffect(() => {
+    fetchEvents()
+  }, [fetchEvents])
 
   const deleteEvent = async (id) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return

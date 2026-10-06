@@ -1,10 +1,19 @@
+import os
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException
-import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "collegebuddysecretkey")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+
+if ENVIRONMENT == "production":
+    try:
+        SECRET_KEY = os.environ["SECRET_KEY"]
+    except KeyError:
+        raise RuntimeError("CRITICAL: SECRET_KEY environment variable is mandatory in production!")
+else:
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

@@ -1,11 +1,10 @@
 import { useEffect, useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import API from "../api/api"
-import { getUserId, getToken } from "../utils/auth"
+import { getToken } from "../utils/auth"
 import { resolveUploadUrl } from "../utils/url"
 import StudentSidebar from "../components/StudentSidebar"
 import { MapPin, IndianRupee, Users, Calendar, Search, X, ChevronRight, Tag, Trophy, Clock } from "lucide-react"
-import { toast } from "react-hot-toast"
 
 const EVENT_TYPE_STYLES = {
   Technical:  { bg: "bg-blue-100",   text: "text-blue-700",   dot: "bg-blue-500"   },
@@ -142,9 +141,8 @@ function Events() {
 
   const fetchEvents = useCallback((search = "") => {
     const token = getToken()
-    setLoading(true)
     const params = search ? { search } : {}
-    API.get("/events", {
+    return API.get("/events", {
       params,
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -153,17 +151,21 @@ function Events() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { fetchEvents() }, [])
+  useEffect(() => {
+    fetchEvents()
+  }, [fetchEvents])
 
   const handleSearch = (value) => {
     setSearchQuery(value)
     if (searchTimeout) clearTimeout(searchTimeout)
+    setLoading(true)
     const timeout = setTimeout(() => fetchEvents(value), 300)
     setSearchTimeout(timeout)
   }
 
   const clearSearch = () => {
     setSearchQuery("")
+    setLoading(true)
     fetchEvents("")
   }
 

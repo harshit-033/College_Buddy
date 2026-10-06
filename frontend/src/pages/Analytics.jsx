@@ -20,7 +20,7 @@ function Analytics() {
         toast.error("Error loading analytics data")
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   const statCards = [
     {

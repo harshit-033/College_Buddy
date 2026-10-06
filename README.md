@@ -62,92 +62,208 @@ CollegeBuddy is a premium, full-stack platform designed to revolutionize campus 
 
 ---
 
-## 🏗️ Architecture
+## 💻 Local Development Setup
 
-![CollegeBuddy Architecture Diagram](docs/architecture.png)
-
-The system follows a modern decoupled architecture:
-- **Frontend**: React-based Single Page Application (SPA) providing a responsive user interface.
-- **Backend**: FastAPI REST server handling business logic, authentication, and AI processing.
-- **Database**: Persistent storage for user data, events, and ticket records.
-- **AI Engine**: Integrated predictions for event attendance analytics.
-- **Ticket System**: Automated QR code generation and verification pipeline.
-
----
-
-## 💻 Local Setup
-
-Follow these steps to get CollegeBuddy running on your local machine.
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/harshit-033/College_Buddy.git
-cd College_Buddy
-```
-
-### 2. Backend Setup
-Go to the `backend` directory and set up a virtual environment.
-
+### 1. Backend Setup
 ```bash
 cd backend
 python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux/macOS
-source venv/bin/activate
-
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
-
-**Database Initialization:**
-By default, the system uses a SQLite file (`test.db`) for development. To initialize a Postgres database, update `database.py` with your credentials.
-
-**Run the Server:**
+To run the development server (uses SQLite `test.db` by default):
 ```bash
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8000
 ```
-The backend will be available at `http://127.0.0.1:8000`.
+Backend will be reachable at `http://localhost:8000` (API docs at `http://localhost:8000/docs`).
 
-### 3. Frontend Setup
-Open a new terminal and go to the `frontend` directory.
-
+### 2. Frontend Setup
+In a separate terminal:
 ```bash
 cd frontend
-npm install
-```
-
-**Environment Config:**
-Create a `.env` file in the `frontend` folder:
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8000
-```
-
-**Run the Frontend:**
-```bash
+npm ci
 npm run dev
 ```
-The app will be available at `http://localhost:5173`.
+Frontend will be reachable at `http://localhost:5173`.
 
 ---
 
-## 👥 User Roles
+## 🌐 Production Architecture & Deployment
+
+### Target Architecture
+```
+USERS
+  │
+  ▼
+┌──────────────────────────┐
+│     Cloudflare Pages     │
+│     React + Vite SPA     │
+└─────────────┬────────────┘
+              │ HTTPS
+              ▼
+┌────────────────────────────────────────────────────────┐
+│                        AWS EC2                         │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │                    Docker                        │  │
+│  │  ┌────────────┐     ┌──────────────┐             │  │
+│  │  │   Caddy    │ ──► │   FastAPI    │             │  │
+│  │  │(HTTPS/Proxy│     │(Gunicorn 1w) │             │  │
+│  │  └────────────┘     └──────┬───────┘             │  │
+│  │                            │ (Internal network)  │  │
+│  │                            ▼                     │  │
+│  │                     ┌──────────────┐             │  │
+│  │                     │  PostgreSQL  │             │  │
+│  │                     │(Volume data) │             │  │
+│  │                     └──────────────┘             │  │
+│  └──────────────────────────────────────────────────┘  │
+└──────────────┬───────────────────────────┬─────────────┘
+               │                           │
+               ▼                           ▼
+        ┌─────────────┐             ┌─────────────┐
+        │ Cloudinary  │             │  Razorpay   │
+        │ Images / QR │             │  Payments   │
+        └─────────────┘             └─────────────┘
+```
+
+---
+
+## 🔐 Environment Variables
+
+| Variable | Required | Purpose | Example / Notes |
+| :--- | :---: | :--- | :--- |
+| `ENVIRONMENT` | **Yes** | Execution mode | `production` or `development` |
+| `DATABASE_URL` | **Yes** | PostgreSQL connection URI | `postgresql://user:pass@postgres:5432/dbname` |
+| `SECRET_KEY` | **Yes** | JWT signing secret key | 64-char random hex string (`openssl rand -hex 32`) |
+| `FRONTEND_URL` | **Yes** | CORS origin restriction | `https://your-app.pages.dev` |
+| `CLOUDINARY_URL`| **Yes** (in prod) | Media and QR code persistence | `cloudinary://key:secret@cloud_name` |
+| `RAZORPAY_KEY_ID` | **Yes** (payments) | Razorpay public key ID | `rzp_live_...` or `rzp_test_...` |
+| `RAZORPAY_KEY_SECRET` | **Yes** (payments) | Razorpay webhook & verification secret | Razorpay API secret |
+| `DOMAIN` | **Yes** (for Caddy) | Public backend API domain | `api.yourdomain.com` |
+| `VITE_API_URL` | **Yes** (frontend) | Cloudflare Pages backend target | `https://api.yourdomain.com` |
+
+---
+
+## 🚀 Step-by-Step Production Deployment Guide
+
+### Phase 1: AWS EC2 Instance Setup
+1. Launch an EC2 instance:
+   - **AMI**: Ubuntu 24.04 LTS (x86_64 or ARM64)
+   - **Instance Type**: `t3.micro` or `t4g.small` (Eligible for AWS Free Tier)
+   - **Storage**: 20–30 GB gp3 EBS Volume
+   - **Security Group Inbound Rules**:
+     - `22` (SSH) — Restricted to your IP
+     - `80` (HTTP) — `0.0.0.0/0` (for Let's Encrypt ACME challenge)
+     - `443` (HTTPS) — `0.0.0.0/0` (for secure API traffic)
+     - *Note: Ports 5432 and 8000 must NOT be exposed publicly.*
+2. Allocate and associate an **Elastic IP** to the EC2 instance.
+3. Configure your DNS provider:
+   - Add an `A` record pointing `api.yourdomain.com` to your Elastic IP.
+
+### Phase 2: Host Preparation & Repository Setup
+SSH into the EC2 instance and install Docker:
+```bash
+# Update and install Docker Engine & Compose plugin
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Clone repository
+git clone https://github.com/harshit-033/College_Buddy.git /opt/campusiq
+cd /opt/campusiq
+```
+
+### Phase 3: Environment Configuration
+Create the production environment file:
+```bash
+cp .env.example .env
+chmod 600 .env
+nano .env
+```
+Fill in your production values (`POSTGRES_PASSWORD`, `SECRET_KEY`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `CLOUDINARY_URL`, `FRONTEND_URL`, `DOMAIN`).
+
+### Phase 4: Database Migrations & Container Startup
+1. Start PostgreSQL:
+```bash
+docker compose -f docker-compose.prod.yml up -d postgres
+```
+2. Run database migrations to head using Alembic:
+```bash
+docker compose -f docker-compose.prod.yml run --rm backend alembic upgrade head
+```
+3. Launch the full production stack (Caddy + FastAPI + PostgreSQL):
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+4. Verify running containers:
+```bash
+docker compose -f docker-compose.prod.yml ps
+```
+
+### Phase 5: Cloudflare Pages Frontend Deployment
+1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) and navigate to **Workers & Pages** > **Create application** > **Pages** > **Connect to Git**.
+2. Select repository: `harshit-033/College_Buddy`.
+3. Set Build configurations:
+   - **Framework preset**: `Vite`
+   - **Root directory**: `frontend`
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+4. Add Environment Variable:
+   - `VITE_API_URL` = `https://api.yourdomain.com`
+5. Click **Save and Deploy**. Cloudflare Pages will automatically provision SPA routing fallback via `_redirects`.
+
+---
+
+## 🧪 Verification & Smoke Testing
+
+Run the included smoke test script to verify API health:
+```bash
+./scripts/smoke_test.sh https://api.yourdomain.com
+```
+Expected output:
+```
+1. Checking GET / ... PASS (HTTP 200)
+2. Checking GET /health ... PASS (HTTP 200, Body: {"status":"ok","database":"ok"})
+All smoke tests PASSED successfully!
+```
+
+---
+
+## 💾 Database Backups & Recovery
+
+### Automated Backup
+Run the database backup script:
+```bash
+./scripts/backup_db.sh
+```
+This generates a compressed backup file: `backups/backup_YYYY-MM-DD_HHMMSS.sql.gz`.
+
+### Backup Restoration
+To restore a snapshot:
+```bash
+gunzip -c backups/backup_YYYY-MM-DD_HHMMSS.sql.gz | docker exec -i campusiq_postgres psql -U collegebuddy_user -d collegebuddy_db
+```
+
+---
+
+## 👥 User Roles & Permissions
 
 | Role | Permissions | Key Features |
 | :--- | :--- | :--- |
-| **Student** | Browse, Register | QR Tickets, Event History, My Account |
+| **Student** | Browse, Register | QR Tickets, Event History, Profile Management |
 | **Host** | Create, Manage, Analyze | AI Attendance Prediction, Poster Upload, Real-time Stats |
-| **Volunteer** | Scan, Verify | QR Scanner, Attendance Marking, Validations |
-
----
-
-## 🧠 AI & Prediction
-
-CollegeBuddy uses a **Linear Regression** model to assist hosts in planning.
-- **Inputs**: Participant limit, Event fee, Total registrations.
-- **Output**: Predicted actual attendance.
-- **Goal**: Helps organizers optimize resources like seating, catering, and venue size.
-
----
+| **Volunteer** | Scan, Verify | Event-specific QR Scanner, Anti-Duplicate Check-in |
 
 ## 🔮 Future Scope
 

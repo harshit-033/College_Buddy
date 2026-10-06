@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import API from "../api/api"
 import { getToken } from "../utils/auth"
 import Sidebar from "../components/Sidebar"
@@ -16,6 +16,15 @@ function ManageVolunteers() {
   const [submitting, setSubmitting] = useState(false)
   const token = getToken()
 
+  const fetchVolunteers = useCallback(() => {
+    if (!selectedEvent) return
+    API.get(`/host/whitelisted-volunteers/${selectedEvent}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => setVolunteers(res.data))
+      .catch(err => console.log(err))
+  }, [selectedEvent, token])
+
   useEffect(() => {
     API.get("/host/events", {
       headers: { Authorization: `Bearer ${token}` }
@@ -28,19 +37,11 @@ function ManageVolunteers() {
       })
       .catch(err => console.log(err))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   useEffect(() => {
     if (selectedEvent) fetchVolunteers()
-  }, [selectedEvent])
-
-  const fetchVolunteers = () => {
-    API.get(`/host/whitelisted-volunteers/${selectedEvent}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => setVolunteers(res.data))
-      .catch(err => console.log(err))
-  }
+  }, [selectedEvent, fetchVolunteers])
 
   const updateStatus = async (id, status) => {
     try {

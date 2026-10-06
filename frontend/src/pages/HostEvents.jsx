@@ -19,7 +19,7 @@ function HostEvents() {
       .then(res => setEvents(res.data))
       .catch(err => console.log(err))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">

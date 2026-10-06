@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Index, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Index, UniqueConstraint, Numeric
 from datetime import datetime
 from database import Base
 
@@ -44,8 +44,8 @@ class Event(Base):
     title = Column(String, nullable=False)
     description = Column(String)
     venue = Column(String)
-    fee = Column(Float, default=0)
-    volunteer_fee = Column(Float, default=0.0)
+    fee = Column(Numeric(10, 2), default=0.0)
+    volunteer_fee = Column(Numeric(10, 2), default=0.0)
     participant_limit = Column(Integer)
     max_volunteers = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -76,6 +76,10 @@ class Registration(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    __table_args__ = (
+        UniqueConstraint('user_id', 'event_id', name='_user_event_reg_uc'),
+    )
+
 
 class VolunteerWhitelist(Base):
     __tablename__ = "volunteer_whitelist"
@@ -104,9 +108,9 @@ class Payment(Base):
     order_id = Column(String, unique=True, index=True)
     payment_id = Column(String, unique=True, index=True, nullable=True)
     signature = Column(String, nullable=True)
-    amount = Column(Float, nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
     currency = Column(String, default="INR")
     status = Column(String, default="pending", index=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

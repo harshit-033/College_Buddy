@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import PosterUpload from "./PosterUpload"
 import {
   FileText, MapPin, Calendar, IndianRupee, Users,

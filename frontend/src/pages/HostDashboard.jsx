@@ -118,7 +118,7 @@ function HostDashboard() {
       .then(res => setEvents(res.data))
       .catch(err => console.log(err))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   const totalEvents = events.length
   const totalCapacity = events.reduce((sum, e) => sum + (e.participant_limit || 0), 0)

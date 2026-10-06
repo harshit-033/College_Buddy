@@ -126,7 +126,7 @@ function Scanner() {
               toast.error(result.message)
             }
           },
-          (error) => {
+          () => {
             // Silent scan noise
           }
         )

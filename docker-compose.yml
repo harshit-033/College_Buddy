@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://campusiq_user:campusiq_password@db:5432/campusiq
-      SECRET_KEY: ${SECRET_KEY:-campusiq_production_secret_key_change_me}
+      SECRET_KEY: ${SECRET_KEY:-dev_local_secret_key}
       CLOUDINARY_URL: ${CLOUDINARY_URL:-}
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}

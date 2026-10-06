@@ -1,9 +1,12 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, Query
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from sqlalchemy import inspect, text
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
 import uuid
 import os
 import qrcode
@@ -11,6 +14,7 @@ import shutil
 import joblib
 from datetime import datetime, timedelta
 import io
+import logging
 import cloudinary
 import cloudinary.uploader
 from cloudinary.uploader import upload
@@ -22,31 +26,72 @@ from security import hash_password, verify_password, create_access_token
 from auth import get_current_user
 import razorpay
 
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_SvY6fnRumMIisk")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "hViFlN2pXZRj4EbB3c9GYJMe")
-razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+# Setup production-safe logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("collegebuddy")
 
-app = FastAPI(title="CollegeBuddy API")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
+
+# Razorpay credentials - no hardcoded credentials
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+if ENVIRONMENT == "production":
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        raise RuntimeError("CRITICAL: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables are required in production!")
+    razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+else:
+    if RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET:
+        razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+    else:
+        # Development dummy client so non-payment endpoints don't crash without credentials
+        razorpay_client = razorpay.Client(auth=("rzp_test_placeholder", "secret_placeholder"))
+
+app = FastAPI(title="CollegeBuddy / CampusIQ API")
+
+# Environment-based CORS Configuration
+FRONTEND_URL = os.getenv("FRONTEND_URL", "").strip()
+
+if ENVIRONMENT == "production":
+    if not FRONTEND_URL:
+        logger.warning("FRONTEND_URL is empty in production mode. CORS will reject cross-origin requests!")
+        allowed_origins = []
+    else:
+        allowed_origins = [origin.strip() for origin in FRONTEND_URL.split(",") if origin.strip()]
+else:
+    allowed_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://localhost:8080",
+    ]
+    if FRONTEND_URL:
+        for origin in FRONTEND_URL.split(","):
+            if origin.strip() and origin.strip() not in allowed_origins:
+                allowed_origins.append(origin.strip())
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
 # Cloudinary Configuration
-if os.getenv("CLOUDINARY_URL"):
-    cloudinary.config(
-        cloudinary_url=os.getenv("CLOUDINARY_URL")
-    )
-else:
-    print("WARNING: CLOUDINARY_URL not found. Cloud storage will be disabled.")
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
+if ENVIRONMENT == "production" and not CLOUDINARY_URL:
+    raise RuntimeError("CRITICAL: CLOUDINARY_URL environment variable is required in production for image and QR storage!")
 
-# Storage Configuration for Render/Production
-# By default, use local directory. If running on Render with a disk, 
-# you can set a STORAGE_DIR environment variable to point to the mounted disk.
+if CLOUDINARY_URL:
+    cloudinary.config(cloudinary_url=CLOUDINARY_URL)
+else:
+    logger.warning("CLOUDINARY_URL not found. Local disk storage will be used (development only).")
+
+# Storage Configuration for development fallback
 STORAGE_DIR = os.getenv("STORAGE_DIR", ".")
 QR_CODES_DIR = os.path.join(STORAGE_DIR, "qr_codes")
 UPLOADS_DIR = os.path.join(STORAGE_DIR, "uploads")
@@ -57,9 +102,10 @@ os.makedirs(UPLOADS_DIR, exist_ok=True)
 app.mount("/qr_codes", StaticFiles(directory=QR_CODES_DIR), name="qr_codes")
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
-# Create tables automatically for simple setups. 
-# For production/deployments, use 'alembic upgrade head' instead.
-Base.metadata.create_all(bind=engine)
+# In production, schema is strictly managed via Alembic ('alembic upgrade head').
+# Automatic create_all is enabled only in development.
+if ENVIRONMENT != "production":
+    Base.metadata.create_all(bind=engine)
 
 def _ensure_sqlite_schema_compat():
     """
@@ -139,10 +185,30 @@ def _ensure_sqlite_schema_compat():
                         f"DELETE FROM {table} WHERE event_id NOT IN (SELECT id FROM events)"
                     ))
     except Exception as e:
-        # Never block app startup for a best-effort compatibility patch.
-        print(f"WARNING: SQLite schema compatibility check failed: {e}")
+        logger.warning(f"SQLite schema compatibility check failed: {e}")
 
-_ensure_sqlite_schema_compat()
+if ENVIRONMENT != "production":
+    _ensure_sqlite_schema_compat()
+
+@app.on_event("startup")
+def on_startup():
+    logger.info(f"CollegeBuddy API initialized successfully in [{ENVIRONMENT.upper()}] mode")
+    if ENVIRONMENT == "production":
+        logger.info(f"Restricted CORS active with {len(allowed_origins)} allowed origin(s)")
+
+@app.on_event("shutdown")
+def on_shutdown():
+    logger.info("CollegeBuddy API shutting down cleanly")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    if isinstance(exc, HTTPException):
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    logger.error(f"Internal error processing {request.method} {request.url.path}: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."}
+    )
 
 def get_db():
     db = SessionLocal()
@@ -155,14 +221,70 @@ def get_db():
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, "ai", "attendance_model.pkl")
 
-model = joblib.load(model_path)
+model = None
+try:
+    if os.path.exists(model_path):
+        model = joblib.load(model_path)
+        logger.info("AI attendance model loaded successfully")
+    else:
+        logger.warning(f"AI model file not found at {model_path}")
+except Exception as e:
+    logger.error(f"Error loading AI model: {e}")
 
 @app.get("/")
 def home():
     return {"message": "CollegeBuddy Backend Running"}
 
-from pydantic import BaseModel
-from typing import Optional, List
+@app.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ok", "database": "ok"}
+    except Exception as e:
+        logger.error(f"Health check failed to query database: {e}")
+        return JSONResponse(status_code=503, content={"status": "error", "database": "unavailable"})
+
+# ─── IMAGE VALIDATION HELPER ─────────────────────────────────────────────
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_IMAGE_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+def validate_image_file(upload_file: Optional[UploadFile]) -> Optional[bytes]:
+    if not upload_file or not upload_file.filename:
+        return None
+
+    ext = os.path.splitext(upload_file.filename)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file extension '{ext}'. Allowed extensions are: JPEG, PNG, WEBP"
+        )
+
+    if upload_file.content_type and upload_file.content_type.lower() not in ALLOWED_IMAGE_MIME_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid MIME type '{upload_file.content_type}'. Allowed types are: image/jpeg, image/png, image/webp"
+        )
+
+    contents = upload_file.file.read()
+    if len(contents) > MAX_IMAGE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File exceeds maximum size limit of 5 MB ({len(contents)} bytes)"
+        )
+
+    try:
+        from PIL import Image
+        img = Image.open(io.BytesIO(contents))
+        img.verify()
+        if img.format.upper() not in {"JPEG", "PNG", "WEBP"}:
+            raise HTTPException(status_code=400, detail=f"Unsupported image format: {img.format}")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Uploaded file is not a valid image")
+
+    # Rewind file pointer for subsequent processing
+    upload_file.file.seek(0)
+    return contents
 
 def create_volunteer_registration(user_id: int, event_id: int, db: Session):
     existing_reg = db.query(models.Registration).filter(
@@ -187,21 +309,26 @@ def create_volunteer_registration(user_id: int, event_id: int, db: Session):
             img.save(img_byte_arr, format='PNG')
             img_byte_arr = img_byte_arr.getvalue()
             
-            upload_result = cloudinary.uploader.upload(
+            cloudinary.uploader.upload(
                 img_byte_arr,
-                public_id=f"qr_codes/{qr_code_str}",
+                public_id=f"{qr_code_str}",
                 folder="collegebuddy/qr_codes"
             )
-            # We don't need to save the URL in the DB for Registration because it's derived from qr_code token
         else:
             filepath = os.path.join(QR_CODES_DIR, f"{qr_code_str}.png")
             img.save(filepath)
 
+ALLOWED_PUBLIC_ROLES = {"student", "host"}
+
 class RegisterRequest(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     password: str
     role: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 class WhitelistRequest(BaseModel):
     email: str
@@ -221,8 +348,15 @@ class UpdateVolunteerStatusRequest(BaseModel):
 
 @app.post("/register")
 def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
+    normalized_role = (data.role or "").strip().lower()
+    if normalized_role not in ALLOWED_PUBLIC_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid registration role. Allowed public roles are: {', '.join(sorted(ALLOWED_PUBLIC_ROLES))}"
+        )
 
-    existing_user = db.query(models.User).filter(models.User.email == data.email).first()
+    user_email = str(data.email).strip().lower()
+    existing_user = db.query(models.User).filter(models.User.email == user_email).first()
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -230,10 +364,10 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     hashed_password = hash_password(data.password)
 
     user = models.User(
-        name=data.name,
-        email=data.email,
+        name=data.name.strip(),
+        email=user_email,
         password=hashed_password,
-        role=data.role
+        role=normalized_role
     )
 
     db.add(user)
@@ -253,14 +387,24 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     return {"message": "User registered successfully"}
 
 @app.post("/login")
-def login(email: str, password: str, db: Session = Depends(get_db)):
+def login(
+    data: Optional[LoginRequest] = None,
+    email: Optional[str] = Query(None),
+    password: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    login_email = (data.email if data else email) or ""
+    login_password = (data.password if data else password) or ""
 
-    user = db.query(models.User).filter(models.User.email == email).first()
+    if not login_email or not login_password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    user = db.query(models.User).filter(models.User.email == login_email.strip().lower()).first()
 
     if not user:
         raise HTTPException(status_code=400, detail="Invalid email")
 
-    if not verify_password(password, user.password):
+    if not verify_password(login_password, user.password):
         raise HTTPException(status_code=400, detail="Invalid password")
 
     token_data = {
@@ -340,22 +484,23 @@ def update_user_profile(
     user.org_name = org_name
     user.org_address = org_address
 
-    if profile_photo:
+    if profile_photo and profile_photo.filename:
+        photo_bytes = validate_image_file(profile_photo)
         if os.getenv("CLOUDINARY_URL"):
             upload_result = cloudinary.uploader.upload(
-                profile_photo.file,
+                io.BytesIO(photo_bytes),
                 folder="collegebuddy/profiles",
                 public_id=f"profile_{user.id}"
             )
             user.profile_photo = upload_result["secure_url"]
         else:
             os.makedirs(os.path.join(UPLOADS_DIR, "profiles"), exist_ok=True)
-            file_extension = os.path.splitext(profile_photo.filename)[1]
-            filename = f"profile_{user.id}{file_extension}"
+            file_extension = os.path.splitext(profile_photo.filename)[1].lower()
+            filename = f"profile_{user.id}_{uuid.uuid4().hex[:8]}{file_extension}"
             filepath = os.path.join(UPLOADS_DIR, "profiles", filename)
             
             with open(filepath, "wb") as buffer:
-                shutil.copyfileobj(profile_photo.file, buffer)
+                buffer.write(photo_bytes)
                 
             user.profile_photo = f"profiles/{filename}"
 
@@ -405,19 +550,22 @@ def create_event(
 
     poster_filename = None
 
-    if poster:
+    if poster and poster.filename:
+        poster_bytes = validate_image_file(poster)
         if os.getenv("CLOUDINARY_URL"):
             upload_result = cloudinary.uploader.upload(
-                poster.file,
+                io.BytesIO(poster_bytes),
                 folder="collegebuddy/posters"
             )
             poster_filename = upload_result["secure_url"]
         else:
-            poster_filename = f"{uuid.uuid4()}_{poster.filename}"
-            filepath = os.path.join(UPLOADS_DIR, poster_filename)
+            ext = os.path.splitext(poster.filename)[1].lower()
+            safe_name = f"{uuid.uuid4().hex}{ext}"
+            filepath = os.path.join(UPLOADS_DIR, safe_name)
 
             with open(filepath, "wb") as buffer:
-                shutil.copyfileobj(poster.file, buffer)
+                buffer.write(poster_bytes)
+            poster_filename = safe_name
 
     parsed_event_date = None
     parsed_event_end_date = None
@@ -1261,13 +1409,20 @@ def verify_payment(data: VerifyPaymentRequest, db: Session = Depends(get_db), cu
     try:
         razorpay_client.utility.verify_payment_signature(params_dict)
     except Exception as e:
+        logger.warning(f"Payment signature verification failed: {e}")
         raise HTTPException(status_code=400, detail="Invalid payment signature")
     
     # Signature is valid. Find the payment record.
     payment = db.query(models.Payment).filter(models.Payment.order_id == data.razorpay_order_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment record not found")
+
+    # PAYMENT SECURITY: Verify payment ownership
+    if payment.user_id != current_user["id"]:
+        logger.warning(f"Payment ownership mismatch: user {current_user['id']} tried to verify order {payment.order_id} belonging to user {payment.user_id}")
+        raise HTTPException(status_code=403, detail="Payment does not belong to the authenticated user")
         
+    # Idempotent verification handling
     if payment.status == "success":
         reg = db.query(models.Registration).filter(
             models.Registration.user_id == payment.user_id,
@@ -1283,16 +1438,26 @@ def verify_payment(data: VerifyPaymentRequest, db: Session = Depends(get_db), cu
     payment.payment_id = data.razorpay_payment_id
     payment.signature = data.razorpay_signature
     
-    # Create the registration
-    qr_token = str(uuid.uuid4())
-    registration = models.Registration(
-        user_id=payment.user_id,
-        event_id=payment.event_id,
-        qr_code=qr_token
-    )
-    db.add(registration)
-    db.commit()
-    db.refresh(registration)
+    # Check for existing registration before creating to prevent duplicates
+    existing_reg = db.query(models.Registration).filter(
+        models.Registration.user_id == payment.user_id,
+        models.Registration.event_id == payment.event_id
+    ).first()
+
+    if existing_reg:
+        qr_token = existing_reg.qr_code
+        db.commit()
+    else:
+        # Create the registration
+        qr_token = str(uuid.uuid4())
+        registration = models.Registration(
+            user_id=payment.user_id,
+            event_id=payment.event_id,
+            qr_code=qr_token
+        )
+        db.add(registration)
+        db.commit()
+        db.refresh(registration)
     
     # Generate QR Code image (local or Cloudinary)
     qr_data = f"TICKET:{qr_token}"
@@ -1324,7 +1489,11 @@ def verify_payment(data: VerifyPaymentRequest, db: Session = Depends(get_db), cu
     }
 
 @app.get("/download-receipt/{payment_id}")
-def download_receipt(payment_id: str, db: Session = Depends(get_db)):
+def download_receipt(
+    payment_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     # Fetch payment
     payment = db.query(models.Payment).filter(
         or_(models.Payment.payment_id == payment_id, models.Payment.order_id == payment_id)
@@ -1334,6 +1503,11 @@ def download_receipt(payment_id: str, db: Session = Depends(get_db)):
         
     user = db.query(models.User).filter(models.User.id == payment.user_id).first()
     event = db.query(models.Event).filter(models.Event.id == payment.event_id).first()
+
+    # RECEIPT SECURITY: Verify ownership (attendee or event host only)
+    if payment.user_id != current_user["id"] and (not event or event.host_id != current_user["id"]):
+        logger.warning(f"Unauthorized receipt access: user {current_user.get('id')} attempted to access receipt for payment {payment_id}")
+        raise HTTPException(status_code=403, detail="Unauthorized access to this receipt")
     
     from reportlab.lib.pagesizes import letter
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle

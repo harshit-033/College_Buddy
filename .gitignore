@@ -156,6 +156,12 @@ dist/
 # Databases
 *.db
 *.sqlite
+backups/
+# Local storage & ephemeral directories
+qr_codes/
+uploads/
+backend/qr_codes/
+backend/uploads/
 
 # IDEs
 .idea/
@@ -163,7 +169,11 @@ dist/
 *.swp
 *.swo
 
-# Credentials
+# Credentials & environment files
 *.pem
 *.key
 .env
+.env.*
+*.env
+!.env.example
+!*.env.example

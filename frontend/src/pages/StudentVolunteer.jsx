@@ -110,7 +110,7 @@ function StudentVolunteer() {
       .then(res => setEvents(res.data))
       .catch(err => console.log(err))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   const pending = events.filter(e => e.status === "pending")
   const approved = events.filter(e => e.status === "approved")

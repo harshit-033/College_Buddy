@@ -66,16 +66,16 @@ function Register() {
   ]
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-blue-100">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-96">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-blue-100 p-4 sm:p-6">
+      <div className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 w-full max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-blue-100 flex items-center justify-center">
             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold mb-2 text-center">Create your COLLEGE_BUDDY account</h1>
-        <p className="text-gray-500 mb-6 text-sm">Sign up to discover, book, and host campus events.</p>
+        <h1 className="text-xl sm:text-2xl font-bold mb-2 text-center">Create your COLLEGE_BUDDY account</h1>
+        <p className="text-gray-500 mb-6 text-sm text-center">Sign up to discover, book, and host campus events.</p>
 
         <input
           placeholder="Full Name"

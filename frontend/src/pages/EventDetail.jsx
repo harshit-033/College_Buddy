@@ -129,7 +129,7 @@ function EventDetail() {
 
   if (loading) {
     return (
-      <div className="flex">
+      <div className="flex flex-col md:flex-row min-h-screen">
         <StudentSidebar />
         <div className="flex-1 min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
@@ -143,7 +143,7 @@ function EventDetail() {
 
   if (!event) {
     return (
-      <div className="flex">
+      <div className="flex flex-col md:flex-row min-h-screen">
         <StudentSidebar />
         <div className="flex-1 min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
@@ -167,7 +167,7 @@ function EventDetail() {
   const applicableFee = isVolunteerDiscount ? event.volunteer_fee : event.fee
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <StudentSidebar />
 
       <div className="flex-1 min-h-screen bg-gray-50">
@@ -209,9 +209,9 @@ function EventDetail() {
           )}
 
           {/* Banner bottom info strip */}
-          <div className="absolute bottom-0 left-0 right-0 px-8 py-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">{event.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-white/85 text-sm">
+          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-8 py-4 sm:py-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">{event.title}</h1>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-white/85 text-xs sm:text-sm">
               {event.venue && (
                 <span className="flex items-center gap-1.5">
                   <MapPin size={14} /> {event.venue}
@@ -234,7 +234,7 @@ function EventDetail() {
         </div>
 
         {/* ── Main Content ── */}
-        <div className="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Left column — main info */}
           <div className="lg:col-span-2 space-y-5">

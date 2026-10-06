@@ -172,15 +172,15 @@ function Events() {
     : events.filter(e => e.event_type === activeFilter)
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <StudentSidebar />
 
       <div className="flex-1 min-h-screen bg-gray-50">
 
         {/* Hero Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-10 py-8">
-          <h1 className="text-3xl font-bold text-white mb-1">Discover Events</h1>
-          <p className="text-blue-100 mb-6">Find and register for events on your campus</p>
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 sm:px-8 md:px-10 py-6 sm:py-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Discover Events</h1>
+          <p className="text-blue-100 mb-5 text-sm sm:text-base">Find and register for events on your campus</p>
 
           {/* Search Bar */}
           <div className="relative max-w-xl">
@@ -191,7 +191,7 @@ function Events() {
               placeholder="Search events, venues, organizations..."
               value={searchQuery}
               onChange={e => handleSearch(e.target.value)}
-              className="w-full pl-11 pr-10 py-3 rounded-xl border-0 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-800 placeholder-gray-400"
+              className="w-full pl-11 pr-10 py-3 rounded-xl border-0 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-800 placeholder-gray-400 text-sm sm:text-base"
             />
             {searchQuery && (
               <button
@@ -204,7 +204,7 @@ function Events() {
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {/* Filter pills */}
           <div className="flex items-center gap-2 mb-6 flex-wrap">
             <Tag size={14} className="text-gray-400" />

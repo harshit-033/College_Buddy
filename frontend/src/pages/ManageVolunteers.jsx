@@ -106,14 +106,14 @@ function ManageVolunteers() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
 
-      <div className="flex-1 p-10 bg-gray-50 min-h-screen">
+      <div className="flex-1 p-4 sm:p-6 md:p-10 bg-gray-50 min-h-screen">
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Manage Volunteers</h1>
-          <p className="text-gray-500 mt-1">Authorize volunteer emails for your events. Each volunteer can be assigned to only one event.</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">Manage Volunteers</h1>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">Authorize volunteer emails for your events. Each volunteer can be assigned to only one event.</p>
         </div>
 
         {loading ? (

@@ -22,16 +22,16 @@ function HostEvents() {
   }, [])
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
 
-      <div className="flex-1 p-10 bg-gray-50 min-h-screen">
+      <div className="flex-1 p-4 sm:p-6 md:p-10 bg-gray-50 min-h-screen">
 
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Events</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">My Events</h1>
           <button
             onClick={() => navigate("/create-event")}   // ✅ Fixed: correct route
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors self-start sm:self-auto"
           >
             + Create New Event
           </button>

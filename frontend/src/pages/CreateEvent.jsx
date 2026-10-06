@@ -73,12 +73,12 @@ function CreateEvent() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
 
       <div className="flex-1 min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-10 py-8">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 sm:px-8 md:px-10 py-6 sm:py-8">
           <button
             onClick={() => navigate("/manage-events")}
             className="flex items-center gap-2 text-blue-100 hover:text-white mb-4 text-sm transition-colors"
@@ -86,17 +86,17 @@ function CreateEvent() {
             <ArrowLeft size={15} /> Back to Manage Events
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
               <Plus size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Create New Event</h1>
-              <p className="text-blue-100 mt-0.5">Fill in the details to publish your event</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Create New Event</h1>
+              <p className="text-blue-100 mt-0.5 text-sm sm:text-base">Fill in the details to publish your event</p>
             </div>
           </div>
         </div>
 
-        <div className="p-10">
+        <div className="p-4 sm:p-6 md:p-10 max-w-4xl mx-auto w-full">
           <EventForm
             values={values}
             onChange={handleChange}

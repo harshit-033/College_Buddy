@@ -136,29 +136,29 @@ function ManageEvents() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
 
       <div className="flex-1 min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-10 py-8">
-          <div className="flex items-start justify-between">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 sm:px-8 md:px-10 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white">Manage Events</h1>
-              <p className="text-blue-100 mt-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Manage Events</h1>
+              <p className="text-blue-100 mt-1 text-sm sm:text-base">
                 {events.length} event{events.length !== 1 ? "s" : ""} total
               </p>
             </div>
             <button
               onClick={() => navigate("/create-event")}
-              className="flex items-center gap-2 bg-white text-indigo-700 px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+              className="flex items-center justify-center gap-2 bg-white text-indigo-700 px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 self-start sm:self-auto"
             >
               <Plus size={16} /> Create New Event
             </button>
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {loading ? (
             <div className="flex items-center gap-3 text-gray-400 py-10">
               <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />

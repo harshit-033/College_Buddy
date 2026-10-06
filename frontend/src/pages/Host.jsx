@@ -38,14 +38,12 @@ function Host() {
   }
 
   return (
-
-    <div className="p-10">
-
-      <h1 className="text-3xl font-bold mb-6">
+    <div className="p-4 sm:p-6 md:p-10 min-h-screen bg-gray-50">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">
         Host Dashboard
       </h1>
 
-      <div className="bg-white shadow-lg p-6 rounded-xl w-96">
+      <div className="bg-white shadow-lg p-6 rounded-xl w-full max-w-lg">
 
         <input
           placeholder="Event Title"

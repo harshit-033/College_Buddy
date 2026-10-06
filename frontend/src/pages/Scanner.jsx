@@ -232,36 +232,36 @@ function Scanner() {
     <div className="bg-gray-50 min-h-screen">
       
       {/* ── Header ── */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-8 py-5 flex items-center justify-between text-white shadow-lg">
-        <div className="flex items-center gap-3">
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 sm:px-8 py-3 sm:py-5 flex items-center justify-between text-white shadow-lg">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <button 
             onClick={handleBack}
-            className="p-2.5 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/10"
+            className="p-2 sm:p-2.5 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/10 shrink-0"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xl font-bold">CampusIQ Ticket Control</h1>
-            <p className="text-xs text-blue-150">Event ID: {eventId}</p>
+            <h1 className="text-base sm:text-xl font-bold truncate">CampusIQ Ticket Control</h1>
+            <p className="text-[11px] sm:text-xs text-blue-150">Event ID: {eventId}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => fetchRegistrations(false)}
             className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all text-white flex items-center gap-1.5 text-xs font-semibold"
             disabled={loadingRegs}
           >
             <RefreshCw size={14} className={loadingRegs ? "animate-spin" : ""} />
-            Sync
+            <span className="hidden sm:inline">Sync</span>
           </button>
         </div>
       </div>
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
         {/* ── Stats Dashboard ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Registrations</p>

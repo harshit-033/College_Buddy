@@ -121,9 +121,9 @@ function Profile() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
         {role === "host" ? <Sidebar /> : <StudentSidebar />}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-8">
           <div className="animate-pulse flex flex-col items-center">
             <div className="w-12 h-12 bg-blue-200 rounded-full mb-4"></div>
             <div className="h-4 w-32 bg-gray-200 rounded"></div>
@@ -134,14 +134,14 @@ function Profile() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
       {role === "host" ? <Sidebar /> : <StudentSidebar />}
 
-      <div className="flex-1 p-8 animate-fade-in">
+      <div className="flex-1 p-4 sm:p-6 md:p-8 animate-fade-in">
         <div className="max-w-4xl mx-auto">
-          <header className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">My Account</h1>
-            <p className="text-gray-500 mt-1">Manage your personal and institutional information</p>
+          <header className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">My Account</h1>
+            <p className="text-gray-500 mt-1 text-sm sm:text-base">Manage your personal and institutional information</p>
           </header>
 
           <form onSubmit={handleSave} className="space-y-6">
@@ -166,16 +166,16 @@ function Profile() {
                   </div>
                 </div>
               </div>
-              <div className="pt-16 pb-8 px-8">
-                <div className="flex justify-between items-start">
+              <div className="pt-16 pb-6 px-4 sm:px-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{profile.name}</h2>
-                    <p className="text-blue-600 font-medium capitalize">{role}</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">{profile.name}</h2>
+                    <p className="text-blue-600 font-medium capitalize text-sm sm:text-base">{role}</p>
                   </div>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-semibold transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-blue-200 disabled:opacity-50 w-full sm:w-auto"
                   >
                     {saving ? "Saving..." : <><Save size={18} /> Save Changes</>}
                   </button>

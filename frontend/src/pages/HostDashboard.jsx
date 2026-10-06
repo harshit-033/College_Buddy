@@ -143,29 +143,29 @@ function HostDashboard() {
   ]
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
 
       <div className="flex-1 min-h-screen bg-gray-50">
         {/* Hero Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-10 py-8">
-          <div className="flex items-start justify-between">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 sm:px-8 md:px-10 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white">Host Dashboard</h1>
-              <p className="text-blue-100 mt-1">Welcome back! Here's your event overview.</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Host Dashboard</h1>
+              <p className="text-blue-100 mt-1 text-sm sm:text-base">Welcome back! Here's your event overview.</p>
             </div>
             <button
               onClick={() => navigate("/create-event")}
-              className="flex items-center gap-2 bg-white text-indigo-700 px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+              className="flex items-center justify-center gap-2 bg-white text-indigo-700 px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 self-start sm:self-auto"
             >
               <Plus size={16} /> Create Event
             </button>
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {/* Animated Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
             {stats.map(stat => <StatCard key={stat.label} {...stat} />)}
           </div>
 

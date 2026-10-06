@@ -24,14 +24,14 @@ function MyTickets() {
   const past = tickets.filter(t => t.event_date && new Date(t.event_date) < new Date())
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <StudentSidebar />
 
-      <div className="flex-1 p-10 bg-gray-50 min-h-screen">
+      <div className="flex-1 p-4 sm:p-6 md:p-10 bg-gray-50 min-h-screen">
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">My Tickets</h1>
-          <p className="text-gray-500 mt-1">All your event registrations and QR tickets</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">My Tickets</h1>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">All your event registrations and QR tickets</p>
         </div>
 
         {loading ? (

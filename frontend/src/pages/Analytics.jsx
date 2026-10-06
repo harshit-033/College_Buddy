@@ -59,13 +59,13 @@ function Analytics() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <Sidebar />
 
-      <div className="flex-1 p-10 bg-gray-50 min-h-screen">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Revenue Analytics</h1>
-          <p className="text-gray-500 mt-1">Real-time breakdown of event sales, volunteer payments, and revenue metrics</p>
+      <div className="flex-1 p-4 sm:p-6 md:p-10 bg-gray-50 min-h-screen">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">Revenue Analytics</h1>
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">Real-time breakdown of event sales, volunteer payments, and revenue metrics</p>
         </div>
 
         {loading ? (
@@ -78,18 +78,18 @@ function Analytics() {
         ) : (
           <>
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-10">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8 sm:mb-10">
               {statCards.map((stat) => (
-                <div key={stat.label} className={`${stat.bg} rounded-xl p-6 shadow-sm border border-gray-100/50`}>
-                  <div className={`${stat.color} mb-3`}>{stat.icon}</div>
-                  <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-                  <p className="text-gray-500 text-sm mt-1">{stat.label}</p>
+                <div key={stat.label} className={`${stat.bg} rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100/50`}>
+                  <div className={`${stat.color} mb-2 sm:mb-3`}>{stat.icon}</div>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800">{stat.value}</p>
+                  <p className="text-gray-500 text-xs sm:text-sm mt-1">{stat.label}</p>
                 </div>
               ))}
             </div>
 
             {/* Events Breakdown Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-10">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8 sm:mb-10">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-semibold text-gray-800">Event Revenue & Registrations Breakdown</h2>
               </div>
@@ -97,7 +97,8 @@ function Analytics() {
               {!analytics?.event_breakdown || analytics.event_breakdown.length === 0 ? (
                 <p className="text-center py-10 text-gray-400">No events to analyze yet.</p>
               ) : (
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[650px]">
                   <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
                     <tr>
                       <th className="text-left px-6 py-3">Event Title</th>
@@ -131,6 +132,7 @@ function Analytics() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
 
@@ -144,7 +146,8 @@ function Analytics() {
               {!analytics?.recent_transactions || analytics.recent_transactions.length === 0 ? (
                 <p className="text-center py-10 text-gray-400">No successful transactions yet.</p>
               ) : (
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[650px]">
                   <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
                     <tr>
                       <th className="text-left px-6 py-3">Receipt / Payment ID</th>
@@ -179,6 +182,7 @@ function Analytics() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </>

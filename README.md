@@ -1,290 +1,344 @@
-# CollegeBuddy 🎓 - Smart Campus Event Management System
+# CollegeBuddy — CampusIQ Event Management Platform
 
-CollegeBuddy is a premium, full-stack platform designed to revolutionize campus event management. It provides a seamless experience for students to discover events, hosts to manage them with AI-driven insights, and volunteers to verify attendance using a robust QR-based ticketing system.
+[![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20SQLite-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Deployment](https://img.shields.io/badge/Deployment-Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-![CollegeBuddy Banner](https://img.shields.io/badge/CollegeBuddy-Smart_Events-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+CollegeBuddy (also referred to as CampusIQ in parts of the codebase) is a full-stack campus event management application. It helps students discover and register for events, hosts publish and manage events, and authorized volunteers verify attendee tickets with QR codes. The platform also includes event analytics, an attendance-prediction model, volunteer workflows, and optional online payments.
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Local Setup](#-local-setup)
-- [User Roles](#-user-roles)
-- [AI & Prediction](#-ai--prediction)
-- [Future Scope](#-future-scope)
-- [Screenshots](#-screenshots)
+**Live frontend:** [campus-iq-rho.vercel.app](https://campus-iq-rho.vercel.app)  
+**Repository:** [harshit-033/College_Buddy](https://github.com/harshit-033/College_Buddy)
 
----
+> The repository contains deployment configuration for multiple hosting options. Production URLs, credentials, database access, image storage, and payment processing must be configured for your own deployment. Features that require third-party credentials will not work until those services are configured.
 
-## 🚀 Features
+## Contents
 
-### 🔐 Multi-Role Authentication
-- Secure JWT-based authentication.
-- Dedicated dashboards for **Students**, **Hosts**, and **Volunteers**.
-- Role-based access control (RBAC).
+- [Problem](#problem)
+- [Solution and Features](#solution-and-features)
+- [User Roles](#user-roles)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Run Locally](#run-locally)
+- [Environment Variables](#environment-variables)
+- [Docker Setup](#docker-setup)
+- [Deployment Options](#deployment-options)
+- [Health Checks and CI](#health-checks-and-ci)
+- [Security and Production Notes](#security-and-production-notes)
+- [Limitations and Future Improvements](#limitations-and-future-improvements)
+- [Contributing](#contributing)
 
-### 📅 Event Management (For Hosts)
-- **Create & Edit**: Rich event creation with posters, descriptions, and participant limits.
-- **Analytics Dashboard**: Real-time stats on registrations and attendance.
-- **AI Predictions**: Integrated ML models to predict expected attendance based on event metrics.
+## Problem
 
-### 🎟️ Smart Ticketing (For Students)
-- **Instant Booking**: One-click registration for campus events.
-- **QR Generation**: Automatic generation of unique, secure QR tickets stored locally and in the database.
-- **Event Discovery**: Dynamic list of upcoming events with real-time updates.
+Campus events are often coordinated across separate forms, spreadsheets, chat groups, and manual attendance lists. This can make event discovery inconsistent, registration tracking difficult, entry verification slow, and post-event reporting time-consuming. Paid events introduce additional concerns around payment reconciliation and receipts.
 
-### 🔍 Attendance Verification (For Volunteers)
-- **In-Browser Scanner**: High-performance QR scanner built with `html5-qrcode`.
-- **Instant Validation**: Real-time ticket verification and attendance marking.
-- **Anti-Fraud**: Prevents duplicate entries or invalid ticket usage.
+## Solution and Features
 
----
+CollegeBuddy brings common event workflows into one web application:
 
-## 🛠️ Tech Stack
+- **Event discovery:** browse and search published campus events, with event details such as venue, schedule, fees, capacity, and event category.
+- **Role-based experiences:** separate student and host workflows, with protected frontend routes and backend authorization checks.
+- **Event publishing and management:** hosts can create and update events, configure participant capacity and fees, manage event posters, and oversee registrations.
+- **Registration and QR tickets:** eligible attendees can register for events and receive a unique QR ticket.
+- **QR-based attendance:** an in-browser scanner supports ticket verification and check-in. The backend also tracks attendance to reduce duplicate check-ins.
+- **Volunteer workflows:** hosts can manage event-specific volunteer eligibility and approvals; students can apply to volunteer.
+- **Host analytics:** view event registrations, check-in totals, and payment-related revenue summaries.
+- **Attendance prediction:** a saved scikit-learn model is loaded from `backend/ai/attendance_model.pkl` when available. Prediction quality depends on the model and training data; it should not be treated as a guaranteed forecast.
+- **Payments and receipts:** Razorpay integration supports the payment flow, while successful transactions can have downloadable PDF receipts. Configure Razorpay credentials and test the complete flow in Razorpay test mode before enabling live payments.
+- **Image and QR storage:** Cloudinary can be used for persistent hosted media. Local filesystem storage is a development fallback and is not appropriate for durable data on many ephemeral hosting platforms.
 
-### Frontend
-- **Framework**: React 19 (Vite)
-- **Styling**: TailwindCSS & Lucide icons
-- **State/Routing**: React Router 7
-- **API Client**: Axios
-- **Scanning**: html5-qrcode
+## User Roles
 
-### Backend
-- **Framework**: FastAPI (Python 3.10+)
-- **Database**: PostgreSQL / SQLite (SQLAlchemy ORM)
-- **Security**: JWT tokens, Passlib (Bcrypt)
-- **Utilities**: Qrcode (generation), Pillow (image handling)
+| Role | Main capabilities |
+| --- | --- |
+| **Student** | Discover events, view details, register, access QR tickets, manage profile, and apply for volunteer opportunities. |
+| **Host** | Create and manage events, review registrations and volunteers, and view analytics. |
+| **Volunteer** | Access authorized event check-in workflows and scan tickets. Volunteer access is managed through event-related permissions. |
 
-### AI / ML
-- **Library**: Scikit-Learn
-- **Model**: Linear Regression for attendance prediction
-- **Storage**: Joblib
+Public registration in the current backend accepts **student** and **host** roles; do not assume a user can self-register directly as a volunteer.
 
----
+## Technology Stack
 
-## 💻 Local Development Setup
+| Layer | Technologies |
+| --- | --- |
+| Frontend | React 19, Vite, React Router, Tailwind CSS, Axios, Lucide React, React Hot Toast |
+| QR scanning | `html5-qrcode` |
+| Backend API | Python 3.11, FastAPI, Uvicorn, Gunicorn |
+| Data access | SQLAlchemy |
+| Database | SQLite for local development; PostgreSQL for production |
+| Database migrations | Alembic |
+| Authentication | JWT access tokens, password hashing with Passlib/Bcrypt, role-based authorization |
+| QR and PDFs | `qrcode`, Pillow, ReportLab |
+| Attendance model | scikit-learn, joblib, NumPy, pandas |
+| Media | Cloudinary (optional for development; required by the configured production mode) |
+| Payments | Razorpay |
+| Deployment | Docker Compose, Caddy reverse proxy, and configuration files for Vercel and Render |
 
-### 1. Backend Setup
+## Architecture
+
+```mermaid
+flowchart TD
+    U[Browser / Student / Host / Volunteer] --> FE[React + Vite frontend]
+    FE -->|HTTPS API requests| RP[Caddy reverse proxy in production]
+    RP --> API[FastAPI backend]
+    API --> DB[(PostgreSQL in production)]
+    API --> QR[QR tickets and attendance]
+    API --> ML[Scikit-learn attendance prediction]
+    API --> IMG[Cloudinary media storage]
+    API --> PAY[Razorpay payment service]
+    DB -. local development .-> SQLite[(SQLite database)]
+```
+
+The frontend is a static single-page application. The backend exposes REST endpoints and performs business logic, authentication, database operations, QR generation/check-in, and integrations. In the production Docker Compose configuration, PostgreSQL is placed on an internal Docker network and Caddy serves as the public HTTPS reverse proxy.
+
+## Project Structure
+
+```text
+College_Buddy/
+├── backend/
+│   ├── main.py                 # FastAPI routes and application logic
+│   ├── models.py               # SQLAlchemy data models
+│   ├── database.py             # Database engine/session configuration
+│   ├── auth.py                 # Current-user authentication dependency
+│   ├── security.py              # Password hashing and JWT helpers
+│   ├── requirements.txt        # Python dependencies
+│   ├── Dockerfile
+│   ├── alembic/                # Database migrations
+│   └── ai/
+│       ├── attendance_model.pkl
+│       └── train_model.py
+├── frontend/
+│   ├── src/
+│   │   ├── api/                # API client
+│   │   ├── components/         # Shared UI and protected routes
+│   │   └── pages/              # Auth, events, tickets, host, scanner, etc.
+│   ├── public/_redirects       # SPA fallback for compatible static hosts
+│   ├── package.json
+│   └── Dockerfile
+├── docs/deployment/            # Hosting configuration examples
+├── scripts/smoke_test.sh       # API health smoke test
+├── docker-compose.yml          # Local full-stack setup
+├── docker-compose.prod.yml     # Production-style API + PostgreSQL + Caddy
+├── Caddyfile
+└── README.md
+```
+
+## Run Locally
+
+### Prerequisites
+
+- Python 3.11
+- Node.js 22 (or a compatible current Node.js release)
+- npm
+- Git
+
+PostgreSQL is not required for the basic local development flow; the backend defaults to a local SQLite database when `DATABASE_URL` is not set.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/harshit-033/College_Buddy.git
+cd College_Buddy
+```
+
+### 2. Start the backend
+
+Linux/macOS:
+
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
-To run the development server (uses SQLite `test.db` by default):
-```bash
-uvicorn main:app --reload --port 8000
-```
-Backend will be reachable at `http://localhost:8000` (API docs at `http://localhost:8000/docs`).
 
-### 2. Frontend Setup
-In a separate terminal:
+Windows PowerShell activation command:
+
+```powershell
+cd backend
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The local API is available at `http://localhost:8000`; interactive API docs are at `http://localhost:8000/docs`. The root endpoint should return a message indicating that the backend is running. The health endpoint is `http://localhost:8000/health`.
+
+### 3. Start the frontend
+
+In a second terminal from the repository root:
+
 ```bash
 cd frontend
 npm ci
 npm run dev
 ```
-Frontend will be reachable at `http://localhost:5173`.
 
----
+Vite normally serves the frontend at `http://localhost:5173`. During local development the API client falls back to the current machine hostname on port 8000. To override it, create `frontend/.env` with:
 
-## 🌐 Production Architecture & Deployment
-
-### Target Architecture
-```
-USERS
-  │
-  ▼
-┌──────────────────────────┐
-│     Cloudflare Pages     │
-│     React + Vite SPA     │
-└─────────────┬────────────┘
-              │ HTTPS
-              ▼
-┌────────────────────────────────────────────────────────┐
-│                        AWS EC2                         │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │                    Docker                        │  │
-│  │  ┌────────────┐     ┌──────────────┐             │  │
-│  │  │   Caddy    │ ──► │   FastAPI    │             │  │
-│  │  │(HTTPS/Proxy│     │(Gunicorn 1w) │             │  │
-│  │  └────────────┘     └──────┬───────┘             │  │
-│  │                            │ (Internal network)  │  │
-│  │                            ▼                     │  │
-│  │                     ┌──────────────┐             │  │
-│  │                     │  PostgreSQL  │             │  │
-│  │                     │(Volume data) │             │  │
-│  │                     └──────────────┘             │  │
-│  └──────────────────────────────────────────────────┘  │
-└──────────────┬───────────────────────────┬─────────────┘
-               │                           │
-               ▼                           ▼
-        ┌─────────────┐             ┌─────────────┐
-        │ Cloudinary  │             │  Razorpay   │
-        │ Images / QR │             │  Payments   │
-        └─────────────┘             └─────────────┘
+```dotenv
+VITE_API_URL=http://localhost:8000
 ```
 
----
+Restart the Vite development server after changing environment variables.
 
-## 🔐 Environment Variables
+### 4. Validate the backend
 
-| Variable | Required | Purpose | Example / Notes |
-| :--- | :---: | :--- | :--- |
-| `ENVIRONMENT` | **Yes** | Execution mode | `production` or `development` |
-| `DATABASE_URL` | **Yes** | PostgreSQL connection URI | `postgresql://user:pass@postgres:5432/dbname` |
-| `SECRET_KEY` | **Yes** | JWT signing secret key | 64-char random hex string (`openssl rand -hex 32`) |
-| `FRONTEND_URL` | **Yes** | CORS origin restriction | `https://your-app.pages.dev` |
-| `CLOUDINARY_URL`| **Yes** (in prod) | Media and QR code persistence | `cloudinary://key:secret@cloud_name` |
-| `RAZORPAY_KEY_ID` | **Yes** (payments) | Razorpay public key ID | `rzp_live_...` or `rzp_test_...` |
-| `RAZORPAY_KEY_SECRET` | **Yes** (payments) | Razorpay webhook & verification secret | Razorpay API secret |
-| `DOMAIN` | **Yes** (for Caddy) | Public backend API domain | `api.yourdomain.com` |
-| `VITE_API_URL` | **Yes** (frontend) | Cloudflare Pages backend target | `https://api.yourdomain.com` |
+With the API running:
 
----
-
-## 🚀 Step-by-Step Production Deployment Guide
-
-### Phase 1: AWS EC2 Instance Setup
-1. Launch an EC2 instance:
-   - **AMI**: Ubuntu 24.04 LTS (x86_64 or ARM64)
-   - **Instance Type**: `t3.micro` or `t4g.small` (Eligible for AWS Free Tier)
-   - **Storage**: 20–30 GB gp3 EBS Volume
-   - **Security Group Inbound Rules**:
-     - `22` (SSH) — Restricted to your IP
-     - `80` (HTTP) — `0.0.0.0/0` (for Let's Encrypt ACME challenge)
-     - `443` (HTTPS) — `0.0.0.0/0` (for secure API traffic)
-     - *Note: Ports 5432 and 8000 must NOT be exposed publicly.*
-2. Allocate and associate an **Elastic IP** to the EC2 instance.
-3. Configure your DNS provider:
-   - Add an `A` record pointing `api.yourdomain.com` to your Elastic IP.
-
-### Phase 2: Host Preparation & Repository Setup
-SSH into the EC2 instance and install Docker:
 ```bash
-# Update and install Docker Engine & Compose plugin
-sudo apt-get update
-sudo apt-get install -y ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo usermod -aG docker $USER
-newgrp docker
-
-# Clone repository
-git clone https://github.com/harshit-033/College_Buddy.git /opt/campusiq
-cd /opt/campusiq
+./scripts/smoke_test.sh http://localhost:8000
 ```
 
-### Phase 3: Environment Configuration
-Create the production environment file:
+On Windows, use a Bash-compatible shell (such as Git Bash) for this script, or test `/` and `/health` in a browser or with curl.
+
+## Environment Variables
+
+Never commit real credentials. The root `.env.example`, `backend/.env.example`, and `frontend/.env.example` provide templates; inspect them and configure the variables for the deployment method you choose.
+
+| Variable | Used by | Purpose |
+| --- | --- | --- |
+| `ENVIRONMENT` | Backend | Set to `development` locally and `production` for production deployments. |
+| `DATABASE_URL` | Backend | SQLite URL locally or PostgreSQL URL in production. |
+| `SECRET_KEY` | Backend | JWT signing secret. Generate a unique strong value with `openssl rand -hex 32`. |
+| `FRONTEND_URL` | Backend | Allowed frontend origin(s) for production CORS. Use the full origin, without a path. Multiple comma-separated origins are supported by the backend. |
+| `CLOUDINARY_URL` | Backend | Cloudinary media/QR persistence. The current production configuration requires this value. |
+| `RAZORPAY_KEY_ID` | Backend | Razorpay API key ID. |
+| `RAZORPAY_KEY_SECRET` | Backend | Razorpay API secret. Keep secret-side operations on the backend. |
+| `POSTGRES_DB` | Production Compose | PostgreSQL database name. |
+| `POSTGRES_USER` | Production Compose | PostgreSQL user. |
+| `POSTGRES_PASSWORD` | Production Compose | Strong PostgreSQL password. |
+| `DOMAIN` | Caddy / production Compose | Public API domain, such as `api.example.com`, whose DNS points to the server. |
+| `VITE_API_URL` | Frontend build | Public base URL for the backend API, such as `https://api.example.com`. |
+
+**Important:** Vite variables prefixed with `VITE_` are embedded into the browser bundle and are public. Never put database passwords, JWT secrets, Cloudinary API secrets, or Razorpay secret keys in frontend variables.
+
+Generate a JWT secret locally:
+
+```bash
+openssl rand -hex 32
+```
+
+Use Razorpay test keys while validating payment flows. Switch to live keys only after testing server-side order creation, signature verification, success/failure handling, and webhook requirements.
+
+## Docker Setup
+
+### Local development stack
+
+The root `docker-compose.yml` starts PostgreSQL, the backend, and the frontend:
+
 ```bash
 cp .env.example .env
-chmod 600 .env
-nano .env
+# Edit .env and set a strong SECRET_KEY and any optional integration values.
+docker compose up --build
 ```
-Fill in your production values (`POSTGRES_PASSWORD`, `SECRET_KEY`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `CLOUDINARY_URL`, `FRONTEND_URL`, `DOMAIN`).
 
-### Phase 4: Database Migrations & Container Startup
-1. Start PostgreSQL:
+Then open:
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:8000`
+- API docs: `http://localhost:8000/docs`
+
+The local Compose file is for development only; it uses development database credentials and exposes service ports. Do not use those defaults on a public server.
+
+### Production-style Docker stack
+
+The repository includes `docker-compose.prod.yml`, which runs PostgreSQL, the FastAPI backend, and Caddy. It expects the root `.env` file to contain production configuration. Before starting it:
+
+1. Set unique, strong credentials and the real `DOMAIN`, `FRONTEND_URL`, and database URL.
+2. Ensure the domain's DNS record points to the server.
+3. Verify the EC2 security group allows inbound ports 80 and 443; restrict SSH (22) to your own IP.
+4. Keep PostgreSQL (5432) and FastAPI (8000) private; the production Compose file is designed for internal access to these services.
+5. Run the database migrations before serving production traffic.
+
+From the repository root:
+
 ```bash
 docker compose -f docker-compose.prod.yml up -d postgres
-```
-2. Run database migrations to head using Alembic:
-```bash
 docker compose -f docker-compose.prod.yml run --rm backend alembic upgrade head
-```
-3. Launch the full production stack (Caddy + FastAPI + PostgreSQL):
-```bash
 docker compose -f docker-compose.prod.yml up -d --build
-```
-4. Verify running containers:
-```bash
 docker compose -f docker-compose.prod.yml ps
 ```
 
-### Phase 5: Cloudflare Pages Frontend Deployment
-1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) and navigate to **Workers & Pages** > **Create application** > **Pages** > **Connect to Git**.
-2. Select repository: `harshit-033/College_Buddy`.
-3. Set Build configurations:
-   - **Framework preset**: `Vite`
-   - **Root directory**: `frontend`
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-4. Add Environment Variable:
-   - `VITE_API_URL` = `https://api.yourdomain.com`
-5. Click **Save and Deploy**. Cloudflare Pages will automatically provision SPA routing fallback via `_redirects`.
+Check logs with:
 
----
-
-## 🧪 Verification & Smoke Testing
-
-Run the included smoke test script to verify API health:
 ```bash
-./scripts/smoke_test.sh https://api.yourdomain.com
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f caddy
 ```
-Expected output:
-```
-1. Checking GET / ... PASS (HTTP 200)
-2. Checking GET /health ... PASS (HTTP 200, Body: {"status":"ok","database":"ok"})
-All smoke tests PASSED successfully!
-```
+
+Use `docker compose -f docker-compose.prod.yml down` to stop the stack. Do **not** add `-v` unless you intentionally want to delete the named database volume.
+
+## Deployment Options
+
+### Option A — AWS EC2 (single-server, low-traffic demo)
+
+The app can be hosted on a single EC2 instance using the included production Docker Compose configuration. This is the most direct way to run the entire stack on AWS, but an instance with very little RAM may struggle because PostgreSQL, Python dependencies (including NumPy/SciPy/scikit-learn), the API, and Docker run together.
+
+Recommended starting point for a constrained demo: choose an eligible small EC2 instance only after checking your account's current Free Tier/credit eligibility and the available RAM. Build the frontend on your local machine or a CI runner if the server runs out of memory during image builds. Store persistent data in a backed-up volume and test a restore procedure.
+
+**AWS cost caveat:** “Free Tier” is not universally 12 months of free EC2 anymore. New AWS accounts are generally on a credit-based offer; eligibility depends on account age, selected account plan, services, and usage. Public IPv4, disks, data transfer, snapshots, and other resources may incur costs. Configure AWS Budgets and billing alerts before deployment. See [AWS Free Tier](https://aws.amazon.com/free/) and [EC2 Free Tier usage limits](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html).
+
+### Option B — Vercel (frontend) + separate API host
+
+The frontend is a Vite static application and the repository already has a Vercel SPA rewrite configuration. Deploy the `frontend` directory as the Vercel project root and set `VITE_API_URL` to the public API base URL. The FastAPI backend must still be hosted elsewhere and configured with the correct `FRONTEND_URL`, database, and provider credentials.
+
+### Option C — Render configuration
+
+A Render blueprint is provided at `docs/deployment/render.yaml` for a static frontend and Python backend. Review the blueprint and its database/storage choices before using it. Free web services may sleep, have resource limits, and are not a substitute for persistent production infrastructure; ensure database and uploaded media persistence are handled separately.
+
+### Option D — Cloudflare Pages frontend + API elsewhere
+
+The Vite frontend can also be deployed to Cloudflare Pages with `frontend` as the root directory, `npm run build` as the build command, and `dist` as the output directory. Set `VITE_API_URL` to the publicly reachable backend URL. Cloudflare Pages hosts the static frontend; it does not automatically host this FastAPI/PostgreSQL backend.
+
+## Health Checks and CI
+
+- `GET /` — basic API response.
+- `GET /health` — checks that the API can execute a simple database query.
+- Interactive API docs: `/docs` (consider disabling or protecting them for production if appropriate).
+- `.github/workflows/ci.yml` — GitHub Actions workflow for backend import/migration checks and frontend lint/build checks.
+- `scripts/smoke_test.sh` — checks the root and health endpoints against a target API URL.
+
+## Security and Production Notes
+
+Before using this for real users:
+
+- Use unique production secrets and rotate any credential that has ever been committed to a public repository.
+- Verify that every protected API endpoint checks ownership and role permissions on the server; frontend route guards are not a security boundary.
+- Keep database and backend ports private, enable HTTPS, and restrict SSH to trusted IP addresses.
+- Use PostgreSQL in production, apply Alembic migrations, configure automated backups, and test restoration.
+- Persist media outside the instance or use Cloudinary/S3-compatible object storage; do not rely on ephemeral container storage for user uploads or QR image files.
+- Configure and test CORS with the exact frontend origin(s).
+- Validate Razorpay payment creation and verification in test mode before using live transactions.
+- Set up AWS Budgets, billing alerts, and usage monitoring before launching cloud resources.
+- Keep dependencies patched and review CI results before deploying.
+
+## Limitations and Future Improvements
+
+The repository is a working project, not evidence of a load-tested production service. Before a public launch, prioritize:
+
+- Automated backend unit/integration tests for authentication, access control, QR check-in, payment verification, and duplicate registration.
+- Rate limiting, stricter upload limits and content validation, secure token lifecycle/refresh, and production error/log monitoring.
+- Better observability for payment failures and external service outages.
+- Documented model training data, evaluation metrics, and prediction limitations for the attendance model.
+- Database backup automation and restore drills.
+- A clear license file and screenshots/demo video, if the project is intended for public reuse.
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a branch: `git checkout -b feature/your-feature`.
+3. Make and test your changes.
+4. Commit: `git commit -m "Describe your change"`.
+5. Push your branch and open a pull request.
 
 ---
 
-## 💾 Database Backups & Recovery
-
-### Automated Backup
-Run the database backup script:
-```bash
-./scripts/backup_db.sh
-```
-This generates a compressed backup file: `backups/backup_YYYY-MM-DD_HHMMSS.sql.gz`.
-
-### Backup Restoration
-To restore a snapshot:
-```bash
-gunzip -c backups/backup_YYYY-MM-DD_HHMMSS.sql.gz | docker exec -i campusiq_postgres psql -U collegebuddy_user -d collegebuddy_db
-```
-
----
-
-## 👥 User Roles & Permissions
-
-| Role | Permissions | Key Features |
-| :--- | :--- | :--- |
-| **Student** | Browse, Register | QR Tickets, Event History, Profile Management |
-| **Host** | Create, Manage, Analyze | AI Attendance Prediction, Poster Upload, Real-time Stats |
-| **Volunteer** | Scan, Verify | Event-specific QR Scanner, Anti-Duplicate Check-in |
-
-## 🔮 Future Scope
-
-- [ ] **Automated Certificates**: Generate and email participation certificates (PDF) instantly after the event.
-- [ ] **Payment Gateway**: Integration for paid workshops and high-value events.
-- [ ] **Push Notifications**: Real-time reminders for upcoming events via Web Push or Email.
-- [ ] **Mobile App**: Dedicated Android/iOS app for better scanning performance.
-- [ ] **Live Dashboards**: Interactive charts (Recharts) for deeper event analytics.
-- [ ] **Multi-Campus Support**: Scale the platform to support multiple institutions simultaneously.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
+**Maintainer:** [harshit-033](https://github.com/harshit-033)  
+**Project:** [College_Buddy](https://github.com/harshit-033/College_Buddy)

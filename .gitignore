@@ -177,3 +177,37 @@ backend/uploads/
 *.env
 !.env.example
 !*.env.example
+
+# Documents & presentations (keep out of repo)
+*.pptx
+*.docx
+*.pdf
+*.csv
+
+# Loose images at root
+*.jpeg
+*.jpg
+
+# One-off / utility scripts
+generate_word_doc.py
+/requirements.txt
+
+# LibreOffice lock files
+.~lock.*
+
+# Directories not needed for deployment
+Expected_Frontend/
+outputs/
+tools/
+docs/legacy_migrations/
+
+# Project documentation files (not deployment code)
+CampusIQ_*.txt
+CampusIQ_*.pdf
+CampusIQ_*.docx
+
+# One-off scripts & test artifacts
+backend/fix_qr.py
+backend/event_*_qr.png
+frontend/all code.txt
+frontend/lint-results.txt

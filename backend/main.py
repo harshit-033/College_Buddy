@@ -9,6 +9,8 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 import uuid
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Load .env file for local development
 import qrcode
 import shutil
 import joblib
